@@ -363,6 +363,59 @@
   body.presentacion .lateral,
   body.presentacion .ayuda { display: none; }
 
+  /* Modo caminar: panel con ubicación, minimapa y teclas (reemplaza la ayuda) */
+  body.caminando .ayuda { display: none; }
+  .hud-caminar {
+    position: absolute; top: 12px; left: 12px; z-index: 4; width: 228px;
+    padding: 10px 12px 12px; border-radius: 10px;
+    background: rgba(20,26,34,.92); border: 1px solid var(--borde);
+    font-size: 12px; color: var(--texto-2);
+  }
+  .hud-caminar .titulo { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--insignia); }
+  .hud-caminar .ubic { margin: 4px 0 8px; color: var(--texto); font-size: 13px; font-weight: 600; line-height: 1.35; }
+  .hud-caminar .ubic small { display: block; font-size: 11px; font-weight: 500; color: var(--texto-2); }
+  .hud-caminar canvas { display: block; width: 204px; height: 214px; border-radius: 6px; background: #0d1117; cursor: crosshair; }
+  .hud-caminar .teclas { margin-top: 8px; line-height: 1.7; }
+  .hud-caminar kbd {
+    font-family: var(--mono); font-size: 11px; padding: 0 4px;
+    border: 1px solid var(--borde); border-radius: 3px; color: var(--texto);
+  }
+  .btn-ancho { width: 100%; margin-top: 8px; }
+
+  /* Selector de modo de color y leyenda del modo */
+  .campo { display: grid; gap: 4px; margin-top: 10px; font-size: 12px; color: var(--texto-2); font-weight: 600; }
+  .campo select { width: 100%; }
+  .leyenda-modo {
+    position: absolute; left: 12px; bottom: calc(var(--alto-barra) + 22px); z-index: 4; width: 300px;
+    padding: 10px 12px; border-radius: 10px;
+    background: rgba(20,26,34,.94); border: 1px solid var(--borde); font-size: 12px; color: var(--texto-2);
+  }
+  .leyenda-modo .titulo { color: var(--texto); font-weight: 700; font-size: 13px; }
+  .leyenda-modo .rampa { height: 12px; border-radius: 3px; margin: 8px 0 4px; }
+  .leyenda-modo .marcas { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+  .leyenda-modo .items { display: grid; gap: 4px; margin-top: 8px; }
+  .leyenda-modo .items div { display: flex; align-items: center; gap: 8px; }
+  .leyenda-modo .items b { margin-left: auto; color: var(--texto); font-variant-numeric: tabular-nums; }
+  .leyenda-modo p { margin: 6px 0 0; color: var(--texto-3); }
+
+  /* Slotting */
+  .kpi-slot { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 4px 0 8px; }
+  .kpi-slot div { background: var(--panel-2); border: 1px solid var(--borde); border-radius: 7px; padding: 6px 8px; }
+  .kpi-slot span { display: block; font-size: 10px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--texto-2); }
+  .kpi-slot b { font-size: 15px; font-variant-numeric: tabular-nums; }
+  .kpi-slot b.mejora { color: var(--ok); }
+  .slot .mov { font-family: var(--mono); font-size: 12px; color: var(--texto); }
+  .slot .mov i { font-style: normal; color: var(--texto-3); padding: 0 3px; }
+  .ficha-slot {
+    margin-top: 10px; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid #5b4a2e; background: rgba(230, 97, 0, .07); font-size: 13px;
+  }
+  .ficha-slot.ok { border-color: var(--borde); background: var(--panel-2); }
+  .ficha-slot .titulo { font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--texto-2); }
+  .ficha-slot p { margin: 4px 0 0; color: var(--texto-2); }
+  .ficha-slot b { color: var(--texto); }
+  .ficha-slot button { margin-top: 8px; }
+
   .fallo {
     position: absolute; inset: 0; display: grid; place-items: center; z-index: 20;
     background: var(--bg); color: var(--texto-2); text-align: center; padding: 20px;
@@ -394,7 +447,7 @@
     <section class="seccion">
       <h2>Buscar repuesto</h2>
       <div class="buscador">
-        <input id="buscar" type="search" placeholder="SKU o descripción (ej. impulsor)" autocomplete="off" aria-label="Buscar por SKU o descripción">
+        <input id="buscar" type="search" placeholder="SKU, descripción o ubicación (ej. B-02-2)" autocomplete="off" aria-label="Buscar por SKU o descripción">
         <p id="buscar-info" class="nota" hidden></p>
         <ul id="resultados" class="lista"></ul>
       </div>
@@ -407,6 +460,24 @@
     </section>
 
     <section class="seccion">
+      <h2>Slotting <button id="ver-slotting" class="enlace">Ver en el mapa</button></h2>
+      <p class="nota" style="margin:-4px 0 6px">Lo de alta rotación debería estar cerca de despacho. Distancia media por retiro (ponderada por consumo):</p>
+      <div class="kpi-slot">
+        <div><span>Actual</span><b id="slot-actual">—</b></div>
+        <div><span>Con el plan</span><b id="slot-plan" class="mejora">—</b></div>
+        <div><span>Óptimo</span><b id="slot-optimo">—</b></div>
+      </div>
+      <p id="slot-resumen" class="nota" style="margin:0 0 4px"></p>
+      <ol id="slot-lista" class="lista alertas slot"></ol>
+    </section>
+
+    <section class="seccion">
+      <h2>Planes de acción (Excel)</h2>
+      <button id="btn-oc" class="btn btn-ancho" style="margin-top:0" title="SKU en quiebre, crítico o bajo mínimo con su pedido sugerido, monto y fechas">📦 Orden de compra sugerida</button>
+      <button id="btn-plan-slot" class="btn btn-ancho" title="Intercambios de ubicación sugeridos, ordenados por ahorro de recorrido">↔ Plan de slotting</button>
+    </section>
+
+    <section class="seccion">
       <h2>Vistas</h2>
       <div class="fila-botones">
         <button id="vista-general" class="btn">Vista general</button>
@@ -416,6 +487,16 @@
         <select id="sel-pasillo" aria-label="Pasillo"></select>
         <button id="vista-pasillo" class="btn">Entrar al pasillo</button>
       </div>
+      <label class="campo">Colorear mapa por (V)
+        <select id="sel-color">
+          <option value="estado">Estado de abastecimiento</option>
+          <option value="rotacion">Rotación (consumo mensual)</option>
+          <option value="valor">Valor inmovilizado (USD)</option>
+          <option value="cobertura">Días de cobertura</option>
+          <option value="slotting">Slotting (ubicación vs. rotación)</option>
+        </select>
+      </label>
+      <button id="btn-caminar" class="btn btn-ancho" title="Recorrer los pasillos en primera persona con W A S D (C)">🚶 Caminar por el pasillo (C)</button>
     </section>
 
     <section class="seccion">
@@ -453,7 +534,19 @@
   <main id="visor" class="visor">
     <div class="ayuda">
       Arrastrar: rotar · Clic der.: mover · Rueda: zoom ·
-      <kbd>G</kbd> general · <kbd>P</kbd> planta · <kbd>F</kbd> pantalla completa · <kbd>M</kbd> panel · <kbd>Esc</kbd> cerrar
+      <kbd>G</kbd> general · <kbd>P</kbd> planta · <kbd>F</kbd> pantalla completa · <kbd>M</kbd> panel · <kbd>C</kbd> caminar · <kbd>V</kbd> color · <kbd>Esc</kbd> cerrar
+    </div>
+
+    <div id="hud-caminar" class="hud-caminar" hidden>
+      <div class="titulo">Modo caminar</div>
+      <div id="hud-ubicacion" class="ubic">—</div>
+      <canvas id="minimapa" title="Clic en el mapa para ir a ese punto"></canvas>
+      <div class="teclas">
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> o flechas: moverse<br>
+        Arrastrar: mirar · Rueda: avanzar<br>
+        <kbd>Shift</kbd> correr · <kbd>Q</kbd>/<kbd>E</kbd> bajar/subir<br>
+        Clic: ficha · <kbd>Esc</kbd> o <kbd>C</kbd>: salir
+      </div>
     </div>
 
     <div id="tooltip" class="tooltip" hidden></div>
@@ -468,6 +561,8 @@
       </header>
       <div id="det-cuerpo" class="cuerpo"></div>
     </aside>
+
+    <div id="leyenda-modo" class="leyenda-modo" hidden></div>
 
     <div class="marca-agua" aria-hidden="true">Alonso Ruiz Fredes<span id="marca-datos">Datos de ejemplo</span></div>
 
@@ -546,6 +641,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 /* =====================================================================
    1. PARÁMETROS DE LA BODEGA
@@ -576,6 +673,14 @@ const CONFIG = {
   DIAS_SOBRESTOCK: 180,      // umbral de cobertura para sobrestock
   DIAS_SEGURIDAD: 15,        // días de seguridad del pedido sugerido
   MAX_ALERTAS: 10,
+
+  // Slotting: distancia de recorrido desde los andenes de despacho
+  PENALIDAD_NIVEL: 2.0,      // metros equivalentes por cada nivel sobre el piso (tiempo de elevación)
+  ZONA_A: 0.20,              // 20 % de posiciones más cercanas = zona preferente
+  ZONA_B: 0.30,              // siguiente 30 % = zona B; el resto = zona C
+  ROTACION_A: 0.20,          // 20 % de posiciones con más consumo = rotación A
+  ROTACION_B: 0.30,
+  MAX_SLOTTING: 8,           // movimientos mostrados en el panel
   ARCHIVO_EJEMPLO: 'bodega_ejemplo.xlsx',
 };
 
@@ -635,6 +740,7 @@ const CAJA = {
   prof: CONFIG.PROF_RACK * 0.82,
 };
 const ALTO_VACIO = 0.05;
+const ALTO_PALLET = 0.13;            // pallet de madera bajo cada carga
 
 /* =====================================================================
    3. ESTADO DE LA APLICACIÓN
@@ -678,6 +784,9 @@ const visor = document.getElementById('visor');
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.NeutralToneMapping;   // conserva el tono de los colores de estado
 
 const capaEtiquetas = new CSS2DRenderer();
 capaEtiquetas.domElement.className = 'capa-etiquetas';
@@ -686,9 +795,15 @@ visor.prepend(renderer.domElement);   // el canvas queda debajo de las etiquetas
 
 const escena = new THREE.Scene();
 escena.background = new THREE.Color('#0d1117');
-escena.fog = new THREE.Fog('#0d1117', 80, 170);
+const COLOR_HORIZONTE = '#232b3b';                  // cielo, niebla y suelo lejano se funden aquí
+escena.fog = new THREE.Fog(COLOR_HORIZONTE, 140, 520);
 
-const camara = new THREE.PerspectiveCamera(45, 1, 0.1, 500);
+// Reflejos suaves (entorno de estudio) para metales y concreto
+const pmrem = new THREE.PMREMGenerator(renderer);
+escena.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+escena.environmentIntensity = 0.28;
+
+const camara = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
 
 const controles = new OrbitControls(camara, renderer.domElement);
 controles.enableDamping = true;
@@ -699,10 +814,17 @@ controles.maxDistance = 140;
 controles.maxPolarAngle = Math.PI / 2 - 0.03;   // no bajar del piso
 controles.autoRotateSpeed = 0.6;                // usado en modo presentación
 
-escena.add(new THREE.HemisphereLight('#dfe7f2', '#1a1f26', 1.6));
-const sol = new THREE.DirectionalLight('#ffffff', 1.8);
-sol.position.set(-30, 60, 40);
-escena.add(sol);
+escena.add(new THREE.HemisphereLight('#dfe7f2', '#2a241e', 1.35));
+// Sol de tarde con sombras; la cámara de sombras cubre solo el edificio y el patio
+const sol = new THREE.DirectionalLight('#fff1de', 2.0);
+sol.position.set(L.cx - 38, 62, L.cz + 30);
+sol.target.position.set(L.cx, 0, L.cz);
+sol.castShadow = true;
+sol.shadow.mapSize.set(2048, 2048);
+Object.assign(sol.shadow.camera, { left: -52, right: 52, top: 52, bottom: -52, near: 1, far: 180 });
+sol.shadow.bias = -0.0004;
+sol.shadow.normalBias = 0.03;
+escena.add(sol, sol.target);
 
 /* =====================================================================
    5. CONSTRUCCIÓN DE LA BODEGA (todo por código)
@@ -713,6 +835,80 @@ const _q = new THREE.Quaternion();
 const _s = new THREE.Vector3();
 const _c = new THREE.Color();
 const BLANCO = new THREE.Color('#ffffff');
+const _qj = new THREE.Quaternion();
+const EJE_Y = new THREE.Vector3(0, 1, 0);
+
+// Obstáculos para el modo caminar, además de los racks: muros, pallets del stage y camiones
+const obstaculosExtra = [];
+
+/* ---- Texturas generadas por código (sin archivos de imagen) ---- */
+const ANISOTROPIA = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+function texturaCanvas(ancho, alto, dibujar) {
+  const lienzoT = document.createElement('canvas');
+  lienzoT.width = ancho; lienzoT.height = alto;
+  dibujar(lienzoT.getContext('2d'), ancho, alto);
+  const t = new THREE.CanvasTexture(lienzoT);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = ANISOTROPIA;
+  return t;
+}
+function repetida(textura, rx, ry) {
+  const t = textura.clone();
+  t.repeat.set(rx, ry);
+  t.needsUpdate = true;
+  return t;
+}
+/* Ruido en escala de grises con manchas suaves (concreto, asfalto, tierra) */
+function pintarRuido(ctx, w, h, base, amplitud, semilla, manchas = 0) {
+  const azar = aleatorio(semilla);
+  const img = ctx.createImageData(w, h);
+  for (let i = 0; i < w * h; i++) {
+    const v = base + (azar() - 0.5) * amplitud;
+    img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v;
+    img.data[i * 4 + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  for (let k = 0; k < manchas; k++) {
+    const x = azar() * w, y = azar() * h, r = 15 + azar() * 70, a = 0.04 + azar() * 0.08;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, azar() < 0.6 ? `rgba(0,0,0,${a})` : `rgba(255,255,255,${a * 0.6})`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
+  }
+}
+const TEX = {
+  // Caja de cartón: casi blanca para que el color de estado (color de instancia) domine;
+  // bordes, cinta y etiqueta con código de barras dan el detalle
+  carton: texturaCanvas(256, 256, (c, w, h) => {
+    const azar = aleatorio(5);
+    c.fillStyle = '#ececec'; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 60; i++) { c.fillStyle = `rgba(0,0,0,${0.012 + azar() * 0.02})`; c.fillRect(0, azar() * h, w, 1 + azar() * 2); }
+    c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 12; c.strokeRect(0, 0, w, h);
+    c.fillStyle = 'rgba(255,255,255,.7)'; c.fillRect(w * 0.44, 0, w * 0.12, h);
+    c.fillStyle = 'rgba(0,0,0,.1)'; c.fillRect(w * 0.44, 0, 2, h); c.fillRect(w * 0.56 - 2, 0, 2, h);
+    c.fillStyle = '#ffffff'; c.fillRect(w * 0.63, h * 0.6, w * 0.27, h * 0.25);
+    c.fillStyle = '#1d1d1d';
+    for (let x = w * 0.65, i = 0; x < w * 0.88; i++) { const a = 1 + (i * 7) % 3; c.fillRect(x, h * 0.64, a, h * 0.13); x += a + 1.5 + (i * 5) % 3; }
+  }),
+  // Pallet: tablas de madera con separaciones
+  pallet: texturaCanvas(256, 64, (c, w, h) => {
+    const azar = aleatorio(9), tablas = 7;
+    c.fillStyle = '#2a2018'; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < tablas; i++) { c.fillStyle = `hsl(32, 30%, ${36 + azar() * 10}%)`; c.fillRect(i * w / tablas + 3, 0, w / tablas - 6, h); }
+  }),
+  concreto: texturaCanvas(512, 512, (c, w, h) => pintarRuido(c, w, h, 214, 26, 11, 45)),
+  asfalto: texturaCanvas(512, 512, (c, w, h) => pintarRuido(c, w, h, 150, 70, 13, 20)),
+  tierra: texturaCanvas(512, 512, (c, w, h) => pintarRuido(c, w, h, 185, 55, 17, 140)),
+  // Plancha corrugada: bandas verticales con sombreado
+  corrugado: texturaCanvas(64, 64, (c, w, h) => {
+    for (let x = 0; x < w; x++) {
+      const v = Math.round(170 + 60 * Math.sin((x / w) * Math.PI * 2 * 2));
+      c.fillStyle = `rgb(${v},${v},${v})`; c.fillRect(x, 0, 1, h);
+    }
+  }),
+};
 
 // Etiquetas HTML; la prioridad decide cuál se oculta si dos se superponen
 const etiquetas = [];
@@ -758,29 +954,25 @@ function aleatorio(semilla) {
 }
 
 function construirPiso() {
-  const anchoX = L.xMax - L.xMuro + 2;
-  const anchoZ = L.zMax - L.zMin + 4;
+  const anchoX = L.xMax - L.xMuro;
+  const anchoZ = L.zMax - L.zMin + 2;
+  // Losa de concreto pulido
   const piso = new THREE.Mesh(
     new THREE.PlaneGeometry(anchoX, anchoZ),
-    new THREE.MeshLambertMaterial({ color: '#151b22' }),
+    new THREE.MeshStandardMaterial({ color: '#3d434b', map: repetida(TEX.concreto, anchoX / 9, anchoZ / 9), roughness: 0.58, metalness: 0.05 }),
   );
   piso.rotation.x = -Math.PI / 2;
-  piso.position.set((L.xMuro + L.xMax) / 2 + 1, 0, L.cz);
+  piso.position.set((L.xMuro + L.xMax) / 2, 0, L.cz);
+  piso.receiveShadow = true;
   escena.add(piso);
 
-  const grilla = new THREE.GridHelper(Math.max(anchoX, anchoZ), Math.round(Math.max(anchoX, anchoZ) / 2), '#222a34', '#1b222b');
-  grilla.position.set(piso.position.x, 0.005, L.cz);
-  grilla.material.transparent = true;
-  grilla.material.opacity = 0.5;
-  escena.add(grilla);
-
-  // Contorno de los muros perimetrales (solo línea, para no tapar la vista)
-  const z0 = L.zMin - 1, z1 = L.zMax + 1, x1 = L.xMax;
-  const contorno = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(L.xMuro, 0.02, z0), new THREE.Vector3(x1, 0.02, z0),
-    new THREE.Vector3(x1, 0.02, z1), new THREE.Vector3(L.xMuro, 0.02, z1),
-  ]);
-  escena.add(new THREE.Line(contorno, new THREE.LineBasicMaterial({ color: '#3a4656' })));
+  // Juntas de dilatación cada 6 m
+  const juntas = [];
+  for (let x = L.xMuro + 6; x < L.xMax; x += 6) juntas.push(x, 0.004, L.zMin - 1, x, 0.004, L.zMax + 1);
+  for (let z = L.zMin - 1 + 6; z < L.zMax + 1; z += 6) juntas.push(L.xMuro, 0.004, z, L.xMax, 0.004, z);
+  const geoJuntas = new THREE.BufferGeometry();
+  geoJuntas.setAttribute('position', new THREE.Float32BufferAttribute(juntas, 3));
+  escena.add(new THREE.LineSegments(geoJuntas, new THREE.LineBasicMaterial({ color: '#23282e', transparent: true, opacity: 0.7 })));
 }
 
 /* Corredores: piso más claro entre racks y líneas demarcadas a cada lado */
@@ -796,19 +988,20 @@ function construirCorredores() {
 
   const pisos = new THREE.InstancedMesh(
     new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
-    new THREE.MeshLambertMaterial({ color: '#1c2531' }),
+    new THREE.MeshStandardMaterial({ color: '#46505b', map: repetida(TEX.concreto, 6, 1), roughness: 0.45, metalness: 0.05 }),
     tramos.length,
   );
+  pisos.receiveShadow = true;
   const lineas = new THREE.InstancedMesh(
     new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
-    new THREE.MeshBasicMaterial({ color: '#7d8a9a' }),
+    new THREE.MeshBasicMaterial({ color: '#c3cbd4' }),
     tramos.length * 2,
   );
   tramos.forEach(([a, b], i) => {
-    _m.compose(_v.set((x0 + x1) / 2, 0.008, (a + b) / 2), _q, _s.set(x1 - x0, 1, b - a));
+    _m.compose(_v.set((x0 + x1) / 2, 0.012, (a + b) / 2), _q, _s.set(x1 - x0, 1, b - a));
     pisos.setMatrixAt(i, _m);
     for (const [k, z] of [[0, a + 0.18], [1, b - 0.18]]) {
-      _m.compose(_v.set((x0 + x1) / 2, 0.015, z), _q, _s.set(x1 - x0, 1, 0.08));
+      _m.compose(_v.set((x0 + x1) / 2, 0.022, z), _q, _s.set(x1 - x0, 1, 0.08));
       lineas.setMatrixAt(i * 2 + k, _m);
     }
   });
@@ -822,25 +1015,40 @@ function construirRacks() {
   // Postes: InstancedMesh (una sola llamada de dibujo)
   const numPostes = NUM_PASILLOS * (NUM_COLUMNAS + 1) * 2;
   const postes = new THREE.InstancedMesh(
-    new THREE.BoxGeometry(0.08, altoPoste, 0.08),
-    new THREE.MeshLambertMaterial({ color: '#6b7a8c' }),
+    new THREE.BoxGeometry(0.09, altoPoste, 0.07),
+    new THREE.MeshStandardMaterial({ color: '#3f5f86', metalness: 0.55, roughness: 0.42 }),
     numPostes,
   );
   // Vigas: frente y fondo de cada nivel, más la viga superior
   const numVigas = NUM_PASILLOS * (NUM_NIVELES + 1) * 2;
   const vigas = new THREE.InstancedMesh(
     new THREE.BoxGeometry(L.largoRack, ESPESOR_VIGA, 0.06),
-    new THREE.MeshLambertMaterial({ color: '#3f4d5e' }),
+    new THREE.MeshStandardMaterial({ color: '#5d6b7b', metalness: 0.6, roughness: 0.38 }),
     numVigas,
   );
+  // Arriostramiento de cada bastidor (une poste delantero y trasero): horizontales y diagonales en zigzag
+  const alturasBastidor = [0.25, L.altoRack * 0.5, L.altoRack - 0.15];
+  const piezasBastidor = alturasBastidor.length * 2 - 1;
+  const riostras = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(0.035, 0.035, 1),
+    new THREE.MeshStandardMaterial({ color: '#4d6a8f', metalness: 0.5, roughness: 0.45 }),
+    NUM_PASILLOS * (NUM_COLUMNAS + 1) * piezasBastidor,
+  );
+  // Placas base bajo cada poste
+  const placas = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(0.16, 0.02, 0.14),
+    new THREE.MeshStandardMaterial({ color: '#2c3b4f', metalness: 0.5, roughness: 0.5 }),
+    numPostes,
+  );
 
-  let ip = 0, iv = 0;
+  let ip = 0, iv = 0, ir = 0;
   for (let p = 0; p < NUM_PASILLOS; p++) {
     const z = L.zRack(p);
     for (const lado of [-1, 1]) {
       const zl = z + lado * PROF_RACK / 2;
       for (let c = 0; c <= NUM_COLUMNAS; c++) {
         _m.makeTranslation(c * ANCHO_NICHO, altoPoste / 2, zl);
+        placas.setMatrixAt(ip, _m.clone().setPosition(c * ANCHO_NICHO, 0.01, zl));
         postes.setMatrixAt(ip++, _m);
       }
       for (let n = 1; n <= NUM_NIVELES + 1; n++) {
@@ -848,11 +1056,26 @@ function construirRacks() {
         vigas.setMatrixAt(iv++, _m);
       }
     }
+    for (let c = 0; c <= NUM_COLUMNAS; c++) {
+      const x = c * ANCHO_NICHO;
+      alturasBastidor.forEach((h, k) => {
+        _m.compose(_v.set(x, h, z), _q, _s.set(1, 1, PROF_RACK));
+        riostras.setMatrixAt(ir++, _m);
+        if (k === alturasBastidor.length - 1) return;
+        const dy = alturasBastidor[k + 1] - h;
+        const largo = Math.hypot(dy, PROF_RACK);
+        const angulo = (k % 2 ? 1 : -1) * Math.atan2(dy, PROF_RACK);
+        _m.compose(_v.set(x, h + dy / 2, z), _qj.setFromAxisAngle(new THREE.Vector3(1, 0, 0), angulo), _s.set(1, 1, largo));
+        riostras.setMatrixAt(ir++, _m);
+      });
+    }
     // Identificación del pasillo: letra pintada en el piso y etiqueta sobre la cabecera
     crearTextoPiso(PASILLOS[p], 1.6, -1.0, z);
     crearEtiqueta(PASILLOS[p], 'pasillo', -0.5, L.altoRack + 0.45, z, 0);
   }
-  escena.add(postes, vigas);
+  postes.castShadow = vigas.castShadow = true;
+  postes.receiveShadow = vigas.receiveShadow = riostras.receiveShadow = true;
+  escena.add(postes, vigas, riostras, placas);
 }
 
 function construirZonas() {
@@ -864,8 +1087,9 @@ function construirZonas() {
   const largoStage = z1 - z0;
   const stage = new THREE.Mesh(
     new THREE.PlaneGeometry(anchoStage, largoStage),
-    new THREE.MeshLambertMaterial({ color: '#1d2632' }),
+    new THREE.MeshStandardMaterial({ color: '#343c47', map: repetida(TEX.concreto, 1, 5), roughness: 0.5 }),
   );
+  stage.receiveShadow = true;
   stage.rotation.x = -Math.PI / 2;
   stage.position.set((L.xStageIni + L.xStageFin) / 2, 0.01, (z0 + z1) / 2);
   escena.add(stage);
@@ -888,27 +1112,34 @@ function construirZonas() {
   lineas.computeLineDistances();
   escena.add(lineas);
 
-  // Pallets en espera (color neutro para no confundirse con los estados)
+  // Pallets en espera con carga envuelta (tono cartón, distinto de los colores de estado)
   const azar = aleatorio(42);
   const huecos = [];
   for (let i = 0; i < carriles; i++) for (let j = 0; j < 3; j++) if (azar() < 0.42) huecos.push([i, j]);
-  const pallets = new THREE.InstancedMesh(
-    new THREE.BoxGeometry(1.1, 1, 1.1),
-    new THREE.MeshLambertMaterial({ color: '#7c7262' }),
-    Math.max(1, huecos.length),
+  const n = Math.max(1, huecos.length);
+  const bases = new THREE.InstancedMesh(new THREE.BoxGeometry(1.15, ALTO_PALLET, 1.05), new THREE.MeshStandardMaterial({ map: TEX.pallet, roughness: 0.9 }), n);
+  const cargas = new THREE.InstancedMesh(
+    new RoundedBoxGeometry(1.05, 1, 0.98, 2, 0.04),
+    new THREE.MeshStandardMaterial({ color: '#a88e6c', map: TEX.carton, roughness: 0.75 }),
+    n,
   );
+  // Franja libre frente a cada puerta (paso de grúas horquilla entre andén y racks)
+  const largoMuroZ = L.zMax - L.zMin + 2;
+  const frentePuerta = z => [0, 1, 2, 3].some(i => Math.abs(z - (L.zMin - 1 + largoMuroZ * (i + 0.5) / 4)) < CONFIG.ANCHO_PUERTA / 2 + 0.5);
   huecos.forEach(([i, j], k) => {
     const alto = 0.5 + azar() * 0.9;
-    _m.compose(
-      _v.set(L.xStageIni + anchoStage * (j + 0.5) / 3, alto / 2, z0 + largoCarril * (i + 0.5)),
-      _q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, (azar() - 0.5) * 0.25),
-      _s.set(1, alto, 1),
-    );
-    pallets.setMatrixAt(k, _m);
+    const x = L.xStageIni + anchoStage * (j + 0.5) / 3, z = z0 + largoCarril * (i + 0.5);
+    if (frentePuerta(z)) { _m.makeScale(0, 0, 0); bases.setMatrixAt(k, _m); cargas.setMatrixAt(k, _m); return; }
+    _qj.setFromAxisAngle(EJE_Y, (azar() - 0.5) * 0.25);
+    _m.compose(_v.set(x, ALTO_PALLET / 2, z), _qj, _s.set(1, 1, 1));
+    bases.setMatrixAt(k, _m);
+    _m.compose(_v.set(x, ALTO_PALLET + alto / 2, z), _qj, _s.set(1, alto, 1));
+    cargas.setMatrixAt(k, _m);
+    obstaculosExtra.push({ x0: x - 0.62, x1: x + 0.62, z0: z - 0.6, z1: z + 0.6, alto: alto + ALTO_PALLET, tipo: 'pallet' });
   });
-  _q.identity();
-  pallets.count = huecos.length;
-  escena.add(pallets);
+  bases.count = cargas.count = huecos.length;
+  cargas.castShadow = cargas.receiveShadow = bases.receiveShadow = true;
+  escena.add(bases, cargas);
   crearEtiqueta('Zona de stage', 'zona', (L.xStageIni + L.xStageFin) / 2, 2.2, (z0 + z1) / 2, 2);
 
   // ---- Muro de andenes con 2 puertas de recepción y 2 de despacho ----
@@ -922,9 +1153,8 @@ function construirZonas() {
   const largoMuro = zMuro1 - zMuro0;
   const centros = puertas.map((_, i) => zMuro0 + largoMuro * (i + 0.5) / puertas.length);
 
-  const matMuro = new THREE.MeshLambertMaterial({ color: '#1f2731', transparent: true, opacity: 0.85 });
-  const matMarco = new THREE.MeshLambertMaterial({ color: '#9aa7b6' });
-  const matCortina = new THREE.MeshLambertMaterial({ color: '#4a5666' });
+  const matMarco = new THREE.MeshStandardMaterial({ color: '#9aa7b6', metalness: 0.5, roughness: 0.4 });
+  const matCortina = new THREE.MeshStandardMaterial({ color: '#59677a', map: repetida(TEX.corrugado, 1, 6), metalness: 0.4, roughness: 0.5 });
 
   // Tramos de muro entre puertas
   let zCursor = zMuro0;
@@ -935,16 +1165,14 @@ function construirZonas() {
   }
   tramos.push([zCursor, zMuro1]);
   for (const [a, b] of tramos) {
-    const tramo = new THREE.Mesh(new THREE.BoxGeometry(0.3, ALTO_MURO, b - a), matMuro);
-    tramo.position.set(L.xMuro - 0.15, ALTO_MURO / 2, (a + b) / 2);
-    escena.add(tramo);
+    muroInterior(L.xMuro, (a + b) / 2, b - a, ALTO_MURO, 0, Math.PI / 2);
+    obstaculosExtra.push({ x0: L.xMuro - 0.3, x1: L.xMuro + 0.05, z0: a, z1: b, alto: ALTO_MURO, tipo: 'muro' });
   }
+  CENTROS_PUERTAS.push(...centros);
 
   puertas.forEach((puerta, i) => {
     const zc = centros[i];
-    const dintel = new THREE.Mesh(new THREE.BoxGeometry(0.3, ALTO_MURO - ALTO_PUERTA, ANCHO_PUERTA), matMuro);
-    dintel.position.set(L.xMuro - 0.15, ALTO_PUERTA + (ALTO_MURO - ALTO_PUERTA) / 2, zc);
-    escena.add(dintel);
+    muroInterior(L.xMuro, zc, ANCHO_PUERTA, ALTO_MURO - ALTO_PUERTA, ALTO_PUERTA, Math.PI / 2);   // dintel
     for (const lado of [-1, 1]) {
       const jamba = new THREE.Mesh(new THREE.BoxGeometry(0.35, ALTO_PUERTA, 0.18), matMarco);
       jamba.position.set(L.xMuro - 0.15, ALTO_PUERTA / 2, zc + lado * (ANCHO_PUERTA / 2 + 0.09));
@@ -960,8 +1188,9 @@ function construirZonas() {
     // Área demarcada frente a la puerta
     const area = new THREE.Mesh(
       new THREE.PlaneGeometry(CONFIG.SEPARACION_MURO - 0.4, ANCHO_PUERTA),
-      new THREE.MeshLambertMaterial({ color: puerta.tipo === 'recepcion' ? '#1f3447' : '#33284a' }),
+      new THREE.MeshStandardMaterial({ color: puerta.tipo === 'recepcion' ? '#284560' : '#3f3260', roughness: 0.6 }),
     );
+    area.receiveShadow = true;
     area.rotation.x = -Math.PI / 2;
     area.position.set(L.xMuro + CONFIG.SEPARACION_MURO / 2, 0.012, zc);
     escena.add(area);
@@ -970,15 +1199,323 @@ function construirZonas() {
   });
 }
 
+/* =====================================================================
+   5b. EDIFICIO Y ENTORNO DE LA FAENA
+   ===================================================================== */
+const CENTROS_PUERTAS = [];
+const MAT_MURO = new THREE.MeshStandardMaterial({ color: '#56616e', map: repetida(TEX.corrugado, 30, 1), metalness: 0.35, roughness: 0.55 });
+
+/* Muros con vista "casa de muñecas": desde una vista aérea, el muro que queda entre la cámara
+   y el interior se oculta para no tapar los racks. Caminando (a ras de piso) se ven todos. */
+const MUROS = [];
+function muroInterior(x, z, largo, alto, yBase, giroY) {
+  const mat = MAT_MURO.clone();
+  mat.map = repetida(TEX.corrugado, largo / 0.9, 1);
+  mat.side = THREE.DoubleSide;
+  const muro = new THREE.Mesh(new THREE.PlaneGeometry(largo, alto), mat);
+  muro.rotation.y = giroY;
+  muro.position.set(x, yBase + alto / 2, z);
+  muro.receiveShadow = true;
+  escena.add(muro);
+  MUROS.push({ malla: muro, haciaAdentro: new THREE.Vector3(Math.sin(giroY), 0, Math.cos(giroY)) });
+  return muro;
+}
+
+let interiorEdificio = null;          // cerchas y luminarias: solo se ven estando adentro
+function construirEdificio() {
+  const { ALTO_MURO } = CONFIG;
+  const x0 = L.xMuro, x1 = L.xMax, z0 = L.zMin - 1, z1 = L.zMax + 1;
+  const ancho = x1 - x0, fondo = z1 - z0;
+
+  // Muros restantes (el de andenes se arma con las puertas)
+  muroInterior(x1, (z0 + z1) / 2, fondo, ALTO_MURO, 0, -Math.PI / 2);
+  muroInterior((x0 + x1) / 2, z0, ancho, ALTO_MURO, 0, 0);
+  muroInterior((x0 + x1) / 2, z1, ancho, ALTO_MURO, 0, Math.PI);
+  obstaculosExtra.push(
+    { x0: x1 - 0.05, x1: x1 + 0.3, z0, z1, alto: ALTO_MURO, tipo: 'muro' },
+    { x0, x1, z0: z0 - 0.3, z1: z0 + 0.05, alto: ALTO_MURO, tipo: 'muro' },
+    { x0, x1, z0: z1 - 0.05, z1: z1 + 0.3, alto: ALTO_MURO, tipo: 'muro' },
+  );
+
+  // Sobrecimiento perimetral: marca el contorno del edificio también desde afuera
+  const matSobre = new THREE.MeshStandardMaterial({ color: '#6b7078', map: repetida(TEX.concreto, 8, 1), roughness: 0.8 });
+  const tramos = [
+    [x1 + 0.15, (z0 + z1) / 2, 0.3, fondo + 0.6],
+    [(x0 + x1) / 2, z0 - 0.15, ancho, 0.3],
+    [(x0 + x1) / 2, z1 + 0.15, ancho, 0.3],
+  ];
+  let zc = z0;
+  for (const c of [...CENTROS_PUERTAS, null]) {
+    const fin = c === null ? z1 : c - CONFIG.ANCHO_PUERTA / 2;
+    tramos.push([x0 - 0.15, (zc + fin) / 2, 0.3, fin - zc]);
+    if (c !== null) zc = c + CONFIG.ANCHO_PUERTA / 2;
+  }
+  for (const [x, z, ax, az] of tramos) {
+    const t = new THREE.Mesh(new THREE.BoxGeometry(ax, 0.35, az), matSobre);
+    t.position.set(x, 0.175, z);
+    t.receiveShadow = true;
+    escena.add(t);
+  }
+
+  // Techo: plano mirando hacia abajo (invisible desde arriba) + cerchas y luminarias
+  const techo = new THREE.Mesh(
+    new THREE.PlaneGeometry(ancho, fondo),
+    new THREE.MeshStandardMaterial({ color: '#2a3038', map: repetida(TEX.corrugado, 40, 1), metalness: 0.3, roughness: 0.6 }),
+  );
+  techo.rotation.x = Math.PI / 2;
+  techo.position.set((x0 + x1) / 2, ALTO_MURO, (z0 + z1) / 2);
+  escena.add(techo);
+
+  interiorEdificio = new THREE.Group();
+  const piezas = [];   // [x, y, z, largoX, largoY, largoZ, giroX]
+  const yInf = ALTO_MURO - 0.95, ySup = ALTO_MURO - 0.12;
+  for (let x = x0 + 4; x < x1 - 1; x += 6) {
+    piezas.push([x, yInf, (z0 + z1) / 2, 0.12, 0.12, fondo], [x, ySup, (z0 + z1) / 2, 0.12, 0.12, fondo]);
+    for (let z = z0 + 1.5, k = 0; z < z1 - 1.5; z += 3, k++) {
+      const dz = 3, dy = ySup - yInf, largo = Math.hypot(dz, dy);
+      piezas.push([x, (yInf + ySup) / 2, z + dz / 2, 0.06, 0.06, largo, (k % 2 ? 1 : -1) * Math.atan2(dy, dz)]);
+    }
+  }
+  for (let z = z0 + 2; z < z1; z += 5) piezas.push([(x0 + x1) / 2, ySup + 0.08, z, ancho, 0.1, 0.08]);   // costaneras
+  const cerchas = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshStandardMaterial({ color: '#39424d', metalness: 0.6, roughness: 0.45 }),
+    piezas.length,
+  );
+  piezas.forEach(([x, y, z, ax, ay, az, gx = 0], i) => {
+    _m.compose(_v.set(x, y, z), _qj.setFromAxisAngle(new THREE.Vector3(1, 0, 0), gx), _s.set(ax, ay, az));
+    cerchas.setMatrixAt(i, _m);
+  });
+  // Luminarias LED sobre cada corredor y sobre el stage
+  const lamparas = [];
+  for (let p = -1; p < CONFIG.NUM_PASILLOS; p++) {
+    const z = p < 0 ? L.zRack(0) - CONFIG.PROF_RACK / 2 - CONFIG.ANCHO_PASILLO / 2 : L.zRack(p) + CONFIG.PROF_RACK / 2 + CONFIG.ANCHO_PASILLO / 2;
+    for (let x = 2; x < L.largoRack; x += 6) lamparas.push([x, z]);
+  }
+  for (let z = z0 + 4; z < z1 - 2; z += 7) lamparas.push([(L.xStageIni + L.xStageFin) / 2, z]);
+  const luces = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(1.4, 0.06, 0.32),
+    new THREE.MeshBasicMaterial({ color: '#fff3dc' }),
+    lamparas.length,
+  );
+  lamparas.forEach(([x, z], i) => { _m.makeTranslation(x, yInf - 0.25, z); luces.setMatrixAt(i, _m); });
+  interiorEdificio.add(cerchas, luces);
+  escena.add(interiorEdificio);
+}
+
+/* Terreno, patio de camiones, camino, camiones, cordillera y cielo */
+let cielo = null;
+function construirSitio() {
+  const z0 = L.zMin - 1, z1 = L.zMax + 1;
+
+  // Terreno desértico (se funde con la niebla en el horizonte)
+  const suelo = new THREE.Mesh(
+    new THREE.PlaneGeometry(1400, 1400),
+    new THREE.MeshStandardMaterial({ color: '#3b332c', map: repetida(TEX.tierra, 110, 110), roughness: 1 }),
+  );
+  suelo.rotation.x = -Math.PI / 2;
+  suelo.position.set(L.cx, -0.04, L.cz);
+  suelo.receiveShadow = true;
+  escena.add(suelo);
+
+  // Patio de maniobras asfaltado frente a los andenes y camino de acceso
+  const patioX0 = L.xMuro - 28;
+  const asfalto = (x0, x1, za, zb) => {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(x1 - x0, zb - za),
+      new THREE.MeshStandardMaterial({ color: '#30343a', map: repetida(TEX.asfalto, (x1 - x0) / 10, (zb - za) / 10), roughness: 0.92 }),
+    );
+    m.rotation.x = -Math.PI / 2;
+    m.position.set((x0 + x1) / 2, -0.01, (za + zb) / 2);
+    m.receiveShadow = true;
+    escena.add(m);
+  };
+  asfalto(patioX0, L.xMuro, z0 - 10, z1 + 10);
+  asfalto(patioX0 - 9, patioX0, -400, 400);
+
+  // Demarcación: guías de estacionamiento por andén y eje del camino
+  const marcas = [];
+  for (const zc of CENTROS_PUERTAS) for (const lado of [-1, 1]) marcas.push([L.xMuro - 9, zc + lado * 1.9, 16, 0.14]);
+  for (let z = -400; z < 400; z += 9) marcas.push([patioX0 - 4.5, z, 0.14, 4.5]);
+  const lineas = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#cfd5dc' }), marcas.length);
+  marcas.forEach(([x, z, ax, az], i) => { _m.compose(_v.set(x, 0.005, z), _q, _s.set(ax, 1, az)); lineas.setMatrixAt(i, _m); });
+  escena.add(lineas);
+
+  // Camiones descargando en los andenes de recepción (lejos de la cámara general, no tapan los racks)
+  const ruedas = [];
+  for (const i of [0, 1]) crearCamion(CENTROS_PUERTAS[i], ruedas);
+  const mallaRuedas = new THREE.InstancedMesh(
+    new THREE.CylinderGeometry(0.52, 0.52, 0.38, 20).rotateX(Math.PI / 2),
+    new THREE.MeshStandardMaterial({ color: '#16181b', roughness: 0.85 }),
+    ruedas.length,
+  );
+  ruedas.forEach(([x, z], i) => { _m.makeTranslation(x, 0.52, z); mallaRuedas.setMatrixAt(i, _m); });
+  mallaRuedas.castShadow = true;
+  escena.add(mallaRuedas);
+
+  // Cordones montañosos (dos capas de silueta) y cielo de atardecer
+  escena.add(crearCordillera(560, 70, 55, 3, '#1a202b'), crearCordillera(390, 34, 30, 8, '#11151c'));
+  cielo = new THREE.Mesh(
+    new THREE.SphereGeometry(900, 32, 16),
+    new THREE.ShaderMaterial({
+      side: THREE.BackSide, depthWrite: false, fog: false,
+      uniforms: {
+        arriba: { value: new THREE.Color('#04070c') },
+        horizonte: { value: new THREE.Color(COLOR_HORIZONTE) },
+        brillo: { value: new THREE.Color('#5a4a4a') },
+      },
+      vertexShader: 'varying vec3 vDir; void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: `uniform vec3 arriba; uniform vec3 horizonte; uniform vec3 brillo; varying vec3 vDir;
+        void main() {
+          float h = max(vDir.y, 0.0);
+          vec3 c = mix(horizonte, arriba, pow(min(h * 2.4, 1.0), 0.55));
+          c += brillo * 0.35 * exp(-h * 18.0) * max(-vDir.x, 0.0);   // resplandor del ocaso hacia el oeste
+          gl_FragColor = vec4(c, 1.0);
+          #include <tonemapping_fragment>
+          #include <colorspace_fragment>
+        }`,
+    }),
+  );
+  cielo.renderOrder = -1;
+  escena.add(cielo);
+}
+
+/* Camión con semirremolque estacionado de culata en un andén (se extiende hacia -X) */
+function crearCamion(zc, ruedas) {
+  const atras = L.xMuro - 0.8;                     // parte trasera del remolque
+  const largoRem = 11.5, largoCab = 2.6;
+  const cabX = atras - largoRem - 0.5 - largoCab / 2;
+  const caja = (ax, ay, az, x, y, z, mat) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(ax, ay, az), mat);
+    m.position.set(x, y, z);
+    m.castShadow = m.receiveShadow = true;
+    escena.add(m);
+  };
+  const metal = c => new THREE.MeshStandardMaterial({ color: c, metalness: 0.45, roughness: 0.45 });
+  caja(largoRem, 2.9, 2.5, atras - largoRem / 2, 1.3 + 1.45, zc, metal('#c9ced5'));      // remolque
+  caja(largoRem + 2.5, 0.35, 1.1, atras - (largoRem + 2.5) / 2, 1.0, zc, metal('#202429')); // chasis
+  caja(largoCab, 2.4, 2.5, cabX, 1.0 + 1.2, zc, metal('#2f5a86'));                       // cabina
+  caja(0.05, 1.0, 2.2, cabX - largoCab / 2 - 0.02, 2.7, zc,
+    new THREE.MeshStandardMaterial({ color: '#0d141c', metalness: 0.9, roughness: 0.08 }));  // parabrisas
+  for (const x of [atras - 1.3, atras - 2.5, cabX + 0.7, cabX - 0.8]) ruedas.push([x, zc - 1.05], [x, zc + 1.05]);
+  obstaculosExtra.push({ x0: cabX - largoCab / 2 - 0.1, x1: atras + 0.1, z0: zc - 1.35, z1: zc + 1.35, alto: 4.2, tipo: 'camion' });
+}
+
+/* Anillo de cerros lejanos: suma de senos con fase fija = silueta irregular pero estable */
+function crearCordillera(radio, alturaBase, amplitud, semilla, color) {
+  const azar = aleatorio(semilla);
+  const f = Array.from({ length: 6 }, () => azar() * Math.PI * 2);
+  const segmentos = 240, pos = [], indices = [];
+  for (let i = 0; i <= segmentos; i++) {
+    const a = (i / segmentos) * Math.PI * 2;
+    const h = Math.max(alturaBase * 0.25, alturaBase + amplitud * (0.55 * Math.sin(3 * a + f[0]) + 0.3 * Math.sin(7 * a + f[1])
+      + 0.16 * Math.sin(13 * a + f[2]) + 0.08 * Math.sin(29 * a + f[3]) + 0.05 * Math.sin(57 * a + f[4])));
+    const r = radio * (1 + 0.07 * Math.sin(5 * a + f[5]));
+    pos.push(Math.cos(a) * r, -3, Math.sin(a) * r, Math.cos(a) * r * 1.03, h, Math.sin(a) * r * 1.03);
+  }
+  for (let i = 0; i < segmentos; i++) { const k = i * 2; indices.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setIndex(indices);
+  const malla = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, fog: false, side: THREE.DoubleSide }));
+  malla.position.set(L.cx, 0, L.cz);
+  return malla;
+}
+
+/* Etiquetas de ubicación en la viga, bajo cada pallet, por ambos lados del rack (cada rack
+   se ve desde dos corredores). Los 1.200 códigos van en una sola textura atlas y una sola
+   malla: una llamada de dibujo. Mismo formato que la app: B-02-2 = pasillo B, columna 2, nivel 2. */
+let etiquetasViga = null;
+function construirEtiquetasViga() {
+  const ancho = 160, alto = 28, porFila = 25;                 // píxeles por etiqueta en el atlas
+  const filas = Math.ceil(TOTAL_POSICIONES / porFila);
+  const lienzoE = document.createElement('canvas');
+  lienzoE.width = ancho * porFila;
+  lienzoE.height = alto * filas;
+  const c = lienzoE.getContext('2d');
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  c.font = `700 ${Math.round(alto * 0.74)}px ui-monospace, Menlo, Consolas, monospace`;
+  posiciones.forEach((pos, i) => {
+    const x = (i % porFila) * ancho, y = Math.floor(i / porFila) * alto;
+    c.fillStyle = '#f1f3f5'; c.fillRect(x + 1, y + 1, ancho - 2, alto - 2);   // adhesivo blanco
+    c.fillStyle = '#0f141a'; c.fillText(pos.codigo, x + ancho / 2, y + alto / 2 + 1);
+  });
+  const textura = new THREE.CanvasTexture(lienzoE);
+  textura.colorSpace = THREE.SRGBColorSpace;
+  textura.anisotropy = ANISOTROPIA;
+
+  // Un rectángulo por cara de viga; las UV apuntan a la etiqueta de esa posición en el atlas
+  const anchoM = 0.52, altoM = CONFIG.ESPESOR_VIGA * 0.82;
+  const vertices = [], uvs = [], indices = [];
+  posiciones.forEach((pos, i) => {
+    const u0 = (i % porFila) / porFila, u1 = u0 + 1 / porFila;
+    const v1 = 1 - Math.floor(i / porFila) / filas, v0 = v1 - 1 / filas;
+    const x = L.xColumna(pos.columna), y = L.yViga(pos.nivel), zr = L.zRack(pos.p);
+    for (const lado of [1, -1]) {
+      // Sobre la cara exterior de la viga; el texto se lee de izquierda a derecha desde cada corredor
+      const z = zr + lado * (CONFIG.PROF_RACK / 2 + 0.034);
+      const xi = x - (lado * anchoM) / 2, xd = x + (lado * anchoM) / 2;
+      const b = vertices.length / 3;
+      vertices.push(xi, y - altoM / 2, z, xd, y - altoM / 2, z, xd, y + altoM / 2, z, xi, y + altoM / 2, z);
+      uvs.push(u0, v0, u1, v0, u1, v1, u0, v1);
+      indices.push(b, b + 1, b + 2, b, b + 2, b + 3);
+    }
+  });
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  etiquetasViga = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+    map: textura, roughness: 0.6,
+    emissive: '#ffffff', emissiveMap: textura, emissiveIntensity: 0.22,   // legibles aun en sombra
+  }));
+  escena.add(etiquetasViga);
+}
+
+/* Interior (cerchas y luminarias) solo con la cámara dentro del edificio y bajo el techo */
+function actualizarEntorno() {
+  const { x, y, z } = camara.position;
+  interiorEdificio.visible = x > L.xMuro && x < L.xMax && z > L.zMin - 1 && z < L.zMax + 1 && y < CONFIG.ALTO_MURO;
+  // Etiquetas de viga: solo de cerca (desde la vista aérea serían ilegibles)
+  etiquetasViga.visible = caminando || y < 10;
+  for (const m of MUROS) {
+    const afuera = _v.subVectors(camara.position, m.malla.position).dot(m.haciaAdentro) < 0;
+    m.malla.visible = !(afuera && y > 3.5);
+  }
+  cielo.position.copy(camara.position);
+}
+
 /* Nichos: 1 InstancedMesh con todas las posiciones (color por instancia) */
+// Carga: caja de bordes redondeados con textura de cartón; el color de instancia es el estado
 const nichos = new THREE.InstancedMesh(
-  new THREE.BoxGeometry(CAJA.ancho, CAJA.alto, CAJA.prof),
-  new THREE.MeshLambertMaterial({ color: '#ffffff' }),
+  new RoundedBoxGeometry(CAJA.ancho, CAJA.alto, CAJA.prof, 2, 0.035),
+  new THREE.MeshStandardMaterial({ color: '#ffffff', map: TEX.carton, roughness: 0.8, metalness: 0 }),
   TOTAL_POSICIONES,
 );
 nichos.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+nichos.castShadow = nichos.receiveShadow = true;
 for (let i = 0; i < TOTAL_POSICIONES; i++) nichos.setColorAt(i, COLOR_ESTADO.vacio);
 escena.add(nichos);
+
+// Pallet de madera bajo cada carga
+const palletsNicho = new THREE.InstancedMesh(
+  new THREE.BoxGeometry(CAJA.ancho * 1.05, ALTO_PALLET, CAJA.prof * 1.04),
+  new THREE.MeshStandardMaterial({ map: TEX.pallet, roughness: 0.9 }),
+  TOTAL_POSICIONES,
+);
+palletsNicho.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+palletsNicho.receiveShadow = true;
+escena.add(palletsNicho);
+
+// Pequeñas variaciones fijas por posición (desplazamiento, giro y tamaño): aspecto menos "de grilla"
+const VARIACION = (() => {
+  const azar = aleatorio(2024);
+  return Array.from({ length: TOTAL_POSICIONES }, () => ({
+    dx: (azar() - 0.5) * 0.06, dz: (azar() - 0.5) * 0.05, giro: (azar() - 0.5) * 0.07, esc: 0.95 + azar() * 0.06,
+  }));
+})();
 
 /* Halo rojo (cáscara trasera más grande) alrededor de los quiebres de criticidad A:
    señal de forma que no depende solo del color */
@@ -1017,31 +1554,36 @@ let balizaBaseY = 0;
 function centroNicho(pos, destino = new THREE.Vector3()) {
   return destino.set(
     L.xColumna(pos.columna),
-    L.yViga(pos.nivel) + CONFIG.ESPESOR_VIGA / 2 + CAJA.alto / 2,
+    L.yViga(pos.nivel) + CONFIG.ESPESOR_VIGA / 2 + ALTO_PALLET + CAJA.alto / 2,
     L.zRack(pos.p),
   );
 }
 
-/* Actualiza matriz (visible / oculta / vacía) de una instancia */
+/* Actualiza matrices (visible / oculta / vacía) de la carga y su pallet */
 function actualizarMatriz(pos) {
   const yBase = L.yViga(pos.nivel) + CONFIG.ESPESOR_VIGA / 2;
-  if (!pos.visible) {
-    _s.set(0, 0, 0);
-    _v.set(0, -100, 0);
-  } else if (pos.estado === 'vacio') {
-    _s.set(1, ALTO_VACIO / CAJA.alto, 1);       // losa delgada
-    _v.set(L.xColumna(pos.columna), yBase + ALTO_VACIO / 2, L.zRack(pos.p));
-  } else {
-    _s.set(1, 1, 1);
-    _v.set(L.xColumna(pos.columna), yBase + CAJA.alto / 2, L.zRack(pos.p));
+  const x = L.xColumna(pos.columna), z = L.zRack(pos.p);
+  if (!pos.visible || pos.estado === 'vacio') {
+    _m.makeScale(0, 0, 0);
+    palletsNicho.setMatrixAt(pos.idx, _m);
+    if (pos.visible) _m.compose(_v.set(x, yBase + ALTO_VACIO / 2, z), _q, _s.set(1, ALTO_VACIO / CAJA.alto, 1));  // losa gris
+    nichos.setMatrixAt(pos.idx, _m);
+    return;
   }
-  _m.compose(_v, _q, _s);
+  const va = VARIACION[pos.idx];
+  _m.compose(
+    _v.set(x + va.dx, yBase + ALTO_PALLET + (CAJA.alto * va.esc) / 2, z + va.dz),
+    _qj.setFromAxisAngle(EJE_Y, va.giro),
+    _s.set(va.esc, va.esc, va.esc),
+  );
   nichos.setMatrixAt(pos.idx, _m);
+  _m.compose(_v.set(x, yBase + ALTO_PALLET / 2, z), _q, _s.set(1, 1, 1));
+  palletsNicho.setMatrixAt(pos.idx, _m);
 }
 
 function pintarInstancia(idx) {
   const pos = posiciones[idx];
-  _c.copy(COLOR_ESTADO[pos.estado]);
+  colorDePosicion(pos, _c);
   if (idx === indiceHover || idx === indiceSeleccion) _c.lerp(BLANCO, 0.35);   // aclarar al resaltar
   nichos.setColorAt(idx, _c);
   nichos.instanceColor.needsUpdate = true;
@@ -1051,6 +1593,9 @@ construirPiso();
 construirCorredores();
 construirRacks();
 construirZonas();
+construirEdificio();
+construirSitio();
+construirEtiquetasViga();
 
 /* =====================================================================
    6. LÓGICA DE ABASTECIMIENTO (por SKU)
@@ -1338,6 +1883,10 @@ function aplicarDatos(resultado, origen) {
   limpiarHover();
   buscar(document.getElementById('buscar').value);
   renderAlertas(resultado.skus);
+  calcularMetricas();
+  analizarSlotting();
+  renderSlotting();
+  renderLeyendaModo();
   aplicarFiltros();
 }
 
@@ -1366,7 +1915,7 @@ function aplicarFiltros() {
     if (pos.visible) visibles++;
     actualizarMatriz(pos);
     pintarInstancia(pos.idx);
-    if (pos.visible && pos.estado === 'quiebre' && pos.sku.criticidad === 'A') {
+    if (modoColor === 'estado' && pos.visible && pos.estado === 'quiebre' && pos.sku.criticidad === 'A') {
       quiebresA++;
       _v.copy(centroNicho(pos, _v));
       _m.compose(_v, _q, ESCALA_HALO);
@@ -1374,6 +1923,7 @@ function aplicarFiltros() {
     }
   }
   nichos.instanceMatrix.needsUpdate = true;
+  palletsNicho.instanceMatrix.needsUpdate = true;
   halos.instanceMatrix.needsUpdate = true;
   nichos.computeBoundingSphere();
   nichos.computeBoundingBox();
@@ -1482,6 +2032,303 @@ function limpiarFiltros() {
   aplicarFiltros();
 }
 document.getElementById('limpiar-filtros').addEventListener('click', limpiarFiltros);
+
+/* =====================================================================
+   8b. MODOS DE COLOR, SLOTTING Y PLANES DE ACCIÓN
+   ===================================================================== */
+let modoColor = 'estado';
+const selColor = document.getElementById('sel-color');
+
+// Paletas aptas para daltonismo: viridis (secuencial) y rojo-azul (divergente)
+const VIRIDIS = ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'].map(c => new THREE.Color(c));
+const ROJO_AZUL = ['#ca0020', '#f4a582', '#f7f7f7', '#92c5de', '#0571b0'].map(c => new THREE.Color(c));
+const COBERTURA_MARCAS = [0, 45, 90, 180, 360];      // días en cada parada de ROJO_AZUL
+const COLOR_SLOT = { acercar: new THREE.Color('#E66100'), liberar: new THREE.Color('#8E6BD6'), ok: new THREE.Color('#6f7b88') };
+const SIN_DATO = new THREE.Color('#3a414a');
+const RANGO = { rotacion: [0, 1], valor: [0, 1] };   // log10 de mínimo y máximo
+
+function rampa(paradas, t, destino) {
+  t = Math.min(1, Math.max(0, t)) * (paradas.length - 1);
+  const i = Math.min(paradas.length - 2, Math.floor(t));
+  return destino.copy(paradas[i]).lerp(paradas[i + 1], t - i);
+}
+const normalizarLog = (v, [a, b]) => (v > 0 ? (Math.log10(v) - a) / Math.max(1e-6, b - a) : 0);
+
+/* Métricas por posición para los modos de color */
+function calcularMetricas() {
+  const rot = [], val = [];
+  for (const pos of posiciones) {
+    pos.visitas = pos.sku ? pos.sku.consumo_mensual / pos.sku.indices.length : 0;
+    pos.valor = pos.sku && pos.sku.costo_unitario !== null ? pos.registro.stock_actual * pos.sku.costo_unitario : null;
+    if (pos.visitas > 0) rot.push(Math.log10(pos.visitas));
+    if (pos.valor > 0) val.push(Math.log10(pos.valor));
+  }
+  // Percentiles 2–98 % para que un extremo no aplaste la escala
+  const rango = arr => { arr.sort((a, b) => a - b); return arr.length ? [arr[Math.floor(arr.length * 0.02)], arr[Math.floor(arr.length * 0.98)]] : [0, 1]; };
+  RANGO.rotacion = rango(rot);
+  RANGO.valor = rango(val);
+}
+
+function colorDePosicion(pos, destino) {
+  if (modoColor === 'estado' || !pos.sku) return destino.copy(COLOR_ESTADO[pos.estado]);
+  switch (modoColor) {
+    case 'rotacion': return rampa(VIRIDIS, normalizarLog(pos.visitas, RANGO.rotacion), destino);
+    case 'valor': return pos.valor === null ? destino.copy(SIN_DATO) : rampa(VIRIDIS, normalizarLog(pos.valor, RANGO.valor), destino);
+    case 'cobertura': {
+      const c = Number.isFinite(pos.sku.cobertura) ? pos.sku.cobertura : 360;
+      const k = COBERTURA_MARCAS.findIndex((m, i) => i === COBERTURA_MARCAS.length - 1 || c < COBERTURA_MARCAS[i + 1]);
+      const t = k >= COBERTURA_MARCAS.length - 1 ? 1 : (k + (c - COBERTURA_MARCAS[k]) / (COBERTURA_MARCAS[k + 1] - COBERTURA_MARCAS[k])) / (COBERTURA_MARCAS.length - 1);
+      return rampa(ROJO_AZUL, t, destino);
+    }
+    case 'slotting': return destino.copy(COLOR_SLOT[pos.slot] || COLOR_SLOT.ok);
+    default: return destino.copy(COLOR_ESTADO[pos.estado]);
+  }
+}
+
+function textoMetrica(pos) {
+  switch (modoColor) {
+    case 'rotacion': return `Rotación: ${fmt(pos.visitas, 1)} u/mes en esta ubicación`;
+    case 'valor': return pos.valor === null ? 'Sin costo unitario' : `Valor aquí: ${fmtUSD(pos.valor)}`;
+    case 'cobertura': return `Cobertura: ${formatoCobertura(pos.sku.cobertura)}`;
+    case 'slotting': return `Zona ${pos.zona} · rotación ${pos.claseRot} · ${{ acercar: 'acercar a despacho', liberar: 'liberar zona preferente', ok: 'bien ubicado' }[pos.slot]}`;
+    default: return '';
+  }
+}
+
+function cambiarModoColor(modo) {
+  modoColor = modo;
+  selColor.value = modo;
+  document.querySelector('.leyenda-halo').hidden = modo !== 'estado';   // el borde de quiebres A solo aplica al modo estado
+  renderLeyendaModo();
+  aplicarFiltros();          // repinta y actualiza halos
+  if (indiceSeleccion >= 0) mostrarDetalle(posiciones[indiceSeleccion]);
+}
+selColor.addEventListener('change', () => { cambiarModoColor(selColor.value); selColor.blur(); });
+
+function renderLeyendaModo() {
+  const el = document.getElementById('leyenda-modo');
+  if (modoColor === 'estado') { el.hidden = true; return; }
+  const gradiente = paradas => `linear-gradient(90deg, ${paradas.map(c => `#${c.getHexString()}`).join(', ')})`;
+  const extremos = (r, f) => [f(10 ** r[0]), f(10 ** ((r[0] + r[1]) / 2)), f(10 ** r[1])];
+  let html = '';
+  if (modoColor === 'rotacion') {
+    const [a, m, b] = extremos(RANGO.rotacion, v => `${fmt(v, v < 10 ? 1 : 0)} u/mes`);
+    html = `<div class="titulo">Rotación por ubicación</div><div class="rampa" style="background:${gradiente(VIRIDIS)}"></div>
+      <div class="marcas"><span>${a}</span><span>${m}</span><span>${b}</span></div>
+      <p>Consumo mensual del SKU repartido entre sus ubicaciones (escala logarítmica). Claro = se retira más seguido.</p>`;
+  } else if (modoColor === 'valor') {
+    const [a, m, b] = extremos(RANGO.valor, v => fmtUSD(v));
+    html = datosConCosto
+      ? `<div class="titulo">Valor inmovilizado por ubicación</div><div class="rampa" style="background:${gradiente(VIRIDIS)}"></div>
+        <div class="marcas"><span>${a}</span><span>${m}</span><span>${b}</span></div>
+        <p>Stock en la ubicación × costo unitario (escala logarítmica). Claro = más capital en ese pallet.</p>`
+      : `<div class="titulo">Valor inmovilizado</div><p>El archivo no trae la columna costo_unitario.</p>`;
+  } else if (modoColor === 'cobertura') {
+    html = `<div class="titulo">Días de cobertura del SKU</div><div class="rampa" style="background:${gradiente(ROJO_AZUL)}"></div>
+      <div class="marcas">${COBERTURA_MARCAS.map((d, i) => `<span>${d}${i === COBERTURA_MARCAS.length - 1 ? '+' : ''}</span>`).join('')}</div>
+      <p>Rojo = poca cobertura · blanco ≈ 3 meses · azul = sobre 180 días (sobrestock).</p>`;
+  } else {
+    const n = k => fmt(posiciones.filter(p => p.slot === k).length);
+    const item = (k, t) => `<div><span class="punto" style="background:#${COLOR_SLOT[k].getHexString()}"></span>${t}<b>${n(k)}</b></div>`;
+    html = `<div class="titulo">Slotting: ubicación vs. rotación</div><div class="items">
+      ${item('acercar', 'Alta rotación lejos de despacho: acercar')}
+      ${item('liberar', 'Baja rotación en zona preferente: liberar')}
+      ${item('ok', 'Bien ubicado')}</div>
+      <p>Zona preferente = ${Math.round(CONFIG.ZONA_A * 100)} % de posiciones con menor recorrido desde los andenes de despacho.</p>`;
+  }
+  el.innerHTML = html;
+  el.hidden = false;
+}
+
+/* ---- Slotting ----
+   Distancia de recorrido (m) desde el andén de despacho más cercano: hasta la cabecera
+   del rack, por el corredor más conveniente hasta la columna, más una penalidad por nivel. */
+let DISTANCIA = null, planSlotting = [], resumenSlotting = null;
+function calcularDistancias() {
+  const despacho = CENTROS_PUERTAS.slice(2);           // puertas 3 y 4 = Despacho 1 y 2
+  const xCabecera = -1;
+  DISTANCIA = posiciones.map(pos => {
+    const caras = [L.zRack(pos.p) + CONFIG.PROF_RACK / 2 + CONFIG.ANCHO_PASILLO / 2, L.zRack(pos.p) - CONFIG.PROF_RACK / 2 - CONFIG.ANCHO_PASILLO / 2];
+    let d = Infinity;
+    for (const zc of caras) for (const zd of despacho) {
+      d = Math.min(d, (xCabecera - L.xMuro) + Math.abs(zc - zd) + (L.xColumna(pos.columna) - xCabecera));
+    }
+    return d + (pos.nivel - 1) * CONFIG.PENALIDAD_NIVEL;
+  });
+  // Zonas por distancia (fijas: dependen solo de la geometría)
+  const orden = posiciones.map(p => p.idx).sort((a, b) => DISTANCIA[a] - DISTANCIA[b]);
+  orden.forEach((idx, k) => {
+    const f = k / orden.length;
+    posiciones[idx].zona = f < CONFIG.ZONA_A ? 'A' : f < CONFIG.ZONA_A + CONFIG.ZONA_B ? 'B' : 'C';
+  });
+}
+
+function analizarSlotting() {
+  if (!DISTANCIA) calcularDistancias();
+  const ocupadas = posiciones.filter(p => p.sku);
+  // Clase de rotación por percentil de consumo por ubicación
+  [...ocupadas].sort((a, b) => b.visitas - a.visitas).forEach((p, k) => {
+    const f = k / ocupadas.length;
+    p.claseRot = f < CONFIG.ROTACION_A ? 'A' : f < CONFIG.ROTACION_A + CONFIG.ROTACION_B ? 'B' : 'C';
+  });
+  for (const p of posiciones) {
+    p.parSlot = null;
+    p.slot = !p.sku ? null : p.claseRot === 'A' && p.zona !== 'A' ? 'acercar' : p.claseRot === 'C' && p.zona === 'A' ? 'liberar' : 'ok';
+  }
+  // Intercambios: lo más rotado y lejano ↔ huecos o baja rotación en zona preferente
+  const lejos = ocupadas.filter(p => p.slot === 'acercar').sort((a, b) => b.visitas - a.visitas || DISTANCIA[b.idx] - DISTANCIA[a.idx]);
+  const cerca = posiciones.filter(p => p.zona === 'A' && (!p.sku || p.slot === 'liberar'))
+    .sort((a, b) => (a.sku ? 1 : 0) - (b.sku ? 1 : 0) || a.visitas - b.visitas || DISTANCIA[a.idx] - DISTANCIA[b.idx]);
+  planSlotting = [];
+  for (let i = 0; i < Math.min(lejos.length, cerca.length); i++) {
+    const f = lejos[i], n = cerca[i];
+    const ahorroM = DISTANCIA[f.idx] - DISTANCIA[n.idx];
+    if (ahorroM <= 0) continue;
+    const ahorro = (f.visitas - n.visitas) * ahorroM;     // m·retiro/mes que se dejan de recorrer
+    if (ahorro <= 0) continue;
+    planSlotting.push({ desde: f.idx, hacia: n.idx, ahorroM, ahorro });
+    f.parSlot = n.idx; n.parSlot = f.idx;
+  }
+  planSlotting.sort((a, b) => b.ahorro - a.ahorro);
+
+  // Distancia media por retiro (ponderada por consumo): actual, con el plan y óptimo teórico
+  const media = pares => { let sv = 0, sd = 0; for (const [v, d] of pares) { sv += v; sd += v * d; } return sv ? sd / sv : 0; };
+  const actual = media(ocupadas.map(p => [p.visitas, DISTANCIA[p.idx]]));
+  const nuevaDist = new Map(ocupadas.map(p => [p.idx, DISTANCIA[p.idx]]));
+  for (const m of planSlotting) {
+    nuevaDist.set(m.desde, DISTANCIA[m.hacia]);
+    if (posiciones[m.hacia].sku) nuevaDist.set(m.hacia, DISTANCIA[m.desde]);
+  }
+  const conPlan = media(ocupadas.map(p => [p.visitas, nuevaDist.get(p.idx)]));
+  const distOrden = [...DISTANCIA].sort((a, b) => a - b);
+  const optimo = media([...ocupadas].sort((a, b) => b.visitas - a.visitas).map((p, k) => [p.visitas, distOrden[k]]));
+  resumenSlotting = { actual, conPlan, optimo,
+    acercar: ocupadas.filter(p => p.slot === 'acercar').length, liberar: ocupadas.filter(p => p.slot === 'liberar').length };
+}
+
+function renderSlotting() {
+  const r = resumenSlotting;
+  document.getElementById('slot-actual').textContent = `${fmt(r.actual)} m`;
+  document.getElementById('slot-plan').textContent = `${fmt(r.conPlan)} m`;
+  document.getElementById('slot-optimo').textContent = `${fmt(r.optimo)} m`;
+  const mejora = r.actual ? (1 - r.conPlan / r.actual) * 100 : 0;
+  document.getElementById('slot-resumen').textContent =
+    `${fmt(planSlotting.length)} intercambios reducen el recorrido ${fmt(mejora, 1)} %. ${fmt(r.acercar)} ubicaciones de alta rotación están lejos de despacho y ${fmt(r.liberar)} de baja rotación ocupan la zona preferente.`;
+  const lista = document.getElementById('slot-lista');
+  lista.innerHTML = '';
+  planSlotting.slice(0, CONFIG.MAX_SLOTTING).forEach((m, i) => {
+    const f = posiciones[m.desde], n = posiciones[m.hacia];
+    const li = document.createElement('li');
+    li.innerHTML = `<button type="button" title="${esc(f.sku.descripcion)}&#10;${fmt(f.visitas, 1)} u/mes · recorrido ${fmt(DISTANCIA[f.idx])} m → ${fmt(DISTANCIA[n.idx])} m&#10;${n.sku ? `Intercambia con ${n.sku.sku} (${fmt(n.visitas, 1)} u/mes)` : 'Destino vacío'}">
+        <span class="rango">${i + 1}</span>
+        <span style="min-width:0">
+          <span class="mov">${f.codigo}<i>→</i>${n.codigo}</span>
+          <span class="desc">${esc(f.sku.sku)} · ${esc(f.sku.descripcion)}</span>
+          <span class="meta">${fmt(f.visitas, 1)} u/mes · ${n.sku ? `intercambia con ${esc(n.sku.sku)}` : 'destino vacío'}</span>
+        </span>
+        <span class="ubic"><b>−${fmt(m.ahorroM)} m</b>por retiro</span>
+      </button>`;
+    li.querySelector('button').addEventListener('click', ev => {
+      lista.querySelectorAll('button').forEach(b => b.classList.toggle('activo', b === ev.currentTarget));
+      if (modoColor !== 'slotting') cambiarModoColor('slotting');
+      ubicar(m.desde);
+    });
+    lista.appendChild(li);
+  });
+  if (!planSlotting.length) lista.innerHTML = '<li class="vacio-lista">La ubicación ya es coherente con la rotación.</li>';
+}
+document.getElementById('ver-slotting').addEventListener('click', () => cambiarModoColor('slotting'));
+
+function fichaSlotting(pos) {
+  if (!pos.sku || !DISTANCIA) return '';
+  const zonaTxt = { A: 'zona A (preferente)', B: 'zona B', C: 'zona C (lejos de despacho)' }[pos.zona];
+  const base = `Recorrido ${fmt(DISTANCIA[pos.idx])} m desde despacho · ${zonaTxt} · rotación ${pos.claseRot} (${fmt(pos.visitas, 1)} u/mes)`;
+  if (pos.slot === 'ok') return `<div class="ficha-slot ok"><div class="titulo">Slotting: bien ubicado</div><p>${base}</p></div>`;
+  const par = pos.parSlot !== null ? posiciones[pos.parSlot] : null;
+  const accion = pos.slot === 'acercar'
+    ? 'Alta rotación lejos de despacho: conviene acercarlo.'
+    : 'Baja rotación ocupando la zona preferente: conviene liberarla.';
+  const sugerencia = par
+    ? `<p>Sugerencia: intercambiar con <b>${par.codigo}</b> (${par.sku ? esc(par.sku.sku) : 'vacía'}): el recorrido por retiro baja ${fmt(Math.abs(DISTANCIA[pos.idx] - DISTANCIA[par.idx]))} m.</p>
+       <button type="button" class="btn chico" data-idx="${par.idx}">Ver ${par.codigo}</button>`
+    : '';
+  return `<div class="ficha-slot"><div class="titulo">Slotting: ${pos.slot === 'acercar' ? 'acercar' : 'liberar'}</div><p>${accion}</p><p>${base}</p>${sugerencia}</div>`;
+}
+
+/* ---- Exportaciones: orden de compra y plan de slotting ---- */
+const hoyISO = () => new Date().toLocaleDateString('sv-SE');           // AAAA-MM-DD local
+const sumarDias = d => { const f = new Date(); f.setDate(f.getDate() + Math.round(d)); return f.toLocaleDateString('sv-SE'); };
+function guardarLibro(hojas, nombre) {
+  if (typeof XLSX === 'undefined') return mostrarMensaje('error', 'No se pudo cargar SheetJS.', ['Revisa tu conexión a internet.']);
+  const libro = XLSX.utils.book_new();
+  for (const [titulo, filas, anchos] of hojas) {
+    const hoja = XLSX.utils.aoa_to_sheet(filas);
+    hoja['!cols'] = anchos.map(w => ({ wch: w }));
+    XLSX.utils.book_append_sheet(libro, hoja, titulo);
+  }
+  XLSX.writeFile(libro, nombre);
+}
+
+function exportarOrdenCompra() {
+  const skus = [...new Map(posiciones.filter(p => p.sku).map(p => [p.sku.sku, p.sku])).values()]
+    .filter(s => ESTADOS_RIESGO.includes(s.estado) && s.pedido > 0);
+  const brecha = s => s.lead_time_dias - (s.stock_total <= 0 || !Number.isFinite(s.cobertura) ? 0 : s.cobertura);
+  skus.sort((a, b) => a.criticidad.localeCompare(b.criticidad) || brecha(b) - brecha(a));
+  const enc = ['prioridad', 'sku', 'descripcion', 'criticidad', 'estado', 'stock_total', 'stock_minimo', 'consumo_mensual',
+    'lead_time_dias', 'cobertura_dias', 'dias_sin_stock_si_se_pide_hoy', 'fecha_quiebre_estimada', 'fecha_llegada_si_se_pide_hoy',
+    'cantidad_sugerida', 'costo_unitario_usd', 'monto_usd', 'ubicaciones'];
+  let total = 0;
+  const filas = skus.map((s, i) => {
+    const cob = s.stock_total <= 0 ? 0 : s.cobertura;
+    const monto = s.costo_unitario === null ? null : Math.round(s.pedido * s.costo_unitario * 100) / 100;
+    total += monto || 0;
+    return [i + 1, s.sku, s.descripcion, s.criticidad, ESTADO_POR_ID[s.estado].nombre, s.stock_total, s.stock_minimo, s.consumo_mensual,
+      s.lead_time_dias, Math.round(cob * 10) / 10, Math.max(0, Math.round(s.lead_time_dias - cob)),
+      s.stock_total <= 0 ? 'Ya en quiebre' : sumarDias(cob), sumarDias(s.lead_time_dias),
+      s.pedido, s.costo_unitario, monto, s.indices.map(k => posiciones[k].codigo).join(' ')];
+  });
+  const porCrit = CRITICIDADES.map(c => [c, skus.filter(s => s.criticidad === c).length,
+    Math.round(skus.filter(s => s.criticidad === c).reduce((a, s) => a + (s.costo_unitario === null ? 0 : s.pedido * s.costo_unitario), 0))]);
+  guardarLibro([
+    ['orden_compra', [enc, ...filas], [9, 12, 52, 10, 12, 11, 12, 15, 14, 14, 18, 20, 22, 16, 17, 14, 30]],
+    ['resumen', [
+      ['Orden de compra sugerida', ''], ['Fecha', hoyISO()],
+      ['Origen de datos', origenDatos.tipo === 'ejemplo' ? 'DATOS DE EJEMPLO (ficticios)' : origenDatos.nombre],
+      ['SKU a comprar', skus.length], ['Monto total (USD)', Math.round(total)], [],
+      ['Criticidad', 'SKU', 'Monto USD'], ...porCrit, [],
+      ['Regla', `Pedido = consumo diario × (lead time + ${CONFIG.DIAS_SEGURIDAD} días) − stock total; SKU en quiebre, crítico o bajo mínimo.`],
+      ['Orden', 'Criticidad A primero; luego mayor brecha entre lead time y cobertura.'],
+    ], [26, 90, 14]],
+  ], `orden_compra_sugerida_${hoyISO()}.xlsx`);
+  mostrarMensaje('ok', `Orden de compra exportada: ${fmt(skus.length)} SKU por ${fmtUSD(total)}.`, [], 4000);
+}
+
+function exportarPlanSlotting() {
+  const enc = ['prioridad', 'mover_desde', 'sku', 'descripcion', 'consumo_por_ubicacion_u_mes', 'zona_actual', 'recorrido_actual_m',
+    'mover_a', 'zona_destino', 'recorrido_nuevo_m', 'ocupado_por', 'consumo_ocupante_u_mes', 'ahorro_m_por_retiro', 'ahorro_m_retiro_mes'];
+  const filas = planSlotting.map((m, i) => {
+    const f = posiciones[m.desde], n = posiciones[m.hacia];
+    return [i + 1, f.codigo, f.sku.sku, f.sku.descripcion, Math.round(f.visitas * 10) / 10, f.zona, Math.round(DISTANCIA[f.idx] * 10) / 10,
+      n.codigo, n.zona, Math.round(DISTANCIA[n.idx] * 10) / 10, n.sku ? n.sku.sku : '(vacía)', n.sku ? Math.round(n.visitas * 10) / 10 : 0,
+      Math.round(m.ahorroM * 10) / 10, Math.round(m.ahorro)];
+  });
+  const r = resumenSlotting;
+  guardarLibro([
+    ['plan_slotting', [enc, ...filas], [9, 12, 12, 52, 16, 11, 16, 10, 12, 16, 12, 16, 16, 16]],
+    ['resumen', [
+      ['Plan de slotting', ''], ['Fecha', hoyISO()],
+      ['Intercambios sugeridos', planSlotting.length],
+      ['Distancia media por retiro actual (m)', Math.round(r.actual * 10) / 10],
+      ['Con el plan (m)', Math.round(r.conPlan * 10) / 10],
+      ['Óptimo teórico (m)', Math.round(r.optimo * 10) / 10],
+      ['Reducción con el plan', `${fmt(r.actual ? (1 - r.conPlan / r.actual) * 100 : 0, 1)} %`], [],
+      ['Supuestos', `Recorrido desde el andén de despacho más cercano por corredores, + ${CONFIG.PENALIDAD_NIVEL} m por nivel. Retiros proporcionales al consumo mensual del SKU repartido entre sus ubicaciones. Zona preferente = ${Math.round(CONFIG.ZONA_A * 100)} % de posiciones más cercanas; rotación A = ${Math.round(CONFIG.ROTACION_A * 100)} % de posiciones con más consumo.`],
+    ], [38, 100]],
+  ], `plan_slotting_${hoyISO()}.xlsx`);
+  mostrarMensaje('ok', `Plan de slotting exportado: ${fmt(planSlotting.length)} intercambios.`, [], 4000);
+}
+document.getElementById('btn-oc').addEventListener('click', exportarOrdenCompra);
+document.getElementById('btn-plan-slot').addEventListener('click', exportarPlanSlotting);
 
 /* =====================================================================
    9. PANEL DE ALERTAS (top de SKU críticos)
@@ -1607,6 +2454,7 @@ function poseEncuadre(direccion) {
 
 /* Aplica la vista general o planta, animada o inmediata */
 function aplicarVista(nombre, animar = true) {
+  if (caminando) salirCaminata();
   // En presentación se conserva el ángulo de giro actual
   const dir = nombre === 'planta' ? DIR_PLANTA
     : controles.autoRotate ? _s.subVectors(camara.position, controles.target).clone() : DIR_GENERAL;
@@ -1625,6 +2473,7 @@ function vistaPlanta() { aplicarVista('planta'); }
 function vistaPasillo(letra) {
   const p = PASILLOS.indexOf(letra);
   if (p < 0) return;
+  if (caminando) salirCaminata();
   vistaActual = null;
   const zFrente = L.zRack(p) + CONFIG.PROF_RACK / 2;
   volarA(
@@ -1682,6 +2531,7 @@ document.addEventListener('fullscreenchange', actualizarBotonPantalla);
 document.addEventListener('webkitfullscreenchange', actualizarBotonPantalla);
 
 function entrarPresentacion() {
+  if (caminando) salirCaminata();
   enPresentacion = true;
   document.body.classList.add('presentacion');
   btnPresentacion.textContent = '■ Salir de presentación';
@@ -1759,7 +2609,8 @@ function procesarHover(ev) {
 
   const e = ESTADO_POR_ID[pos.estado];
   tooltip.innerHTML = `<b>${pos.codigo}</b> · ${pos.sku ? esc(pos.sku.sku) : 'Vacío'}
-    <div class="linea"><span class="punto" style="background:${e.color}"></span>${e.nombre}${pos.sku ? ' · ' + esc(recortar(pos.sku.descripcion, 40)) : ''}</div>`;
+    <div class="linea"><span class="punto" style="background:${e.color}"></span>${e.nombre}${pos.sku ? ' · ' + esc(recortar(pos.sku.descripcion, 40)) : ''}</div>${
+    modoColor !== 'estado' && pos.sku ? `<div class="linea">${textoMetrica(pos)}</div>` : ''}`;
   const r = visor.getBoundingClientRect();
   tooltip.style.left = `${ev.clientX - r.left}px`;
   tooltip.style.top = `${ev.clientY - r.top}px`;
@@ -1856,10 +2707,11 @@ function mostrarDetalle(pos) {
       </dl>
       ${tarjetaPedido(s)}
       ${barraCobertura(s, e.color)}
+      ${fichaSlotting(pos)}
       ${otras.length ? `<div class="otras"><h4>Otras ubicaciones del SKU</h4><div class="chips">${
         otras.slice(0, 12).map(i => `<button type="button" data-idx="${i}">${posiciones[i].codigo}</button>`).join('')
       }</div></div>` : ''}`;
-    cuerpo.querySelectorAll('.otras button').forEach(b => b.addEventListener('click', () => ubicar(Number(b.dataset.idx))));
+    cuerpo.querySelectorAll('.otras button, .ficha-slot button').forEach(b => b.addEventListener('click', () => ubicar(Number(b.dataset.idx))));
   }
   document.getElementById('detalle').hidden = false;
 }
@@ -1893,6 +2745,324 @@ function barraCobertura(s, color) {
       <div class="leyenda-pista"></div>
     </div>`;
 }
+
+/* =====================================================================
+   11b. MODO CAMINAR (primera persona)
+   W A S D o flechas para moverse, arrastrar para mirar, Shift para correr,
+   Q/E para bajar o subir la vista. Los racks y muros bloquean el paso,
+   salvo que la vista esté por encima de los racks.
+   ===================================================================== */
+const CAMINAR = {
+  ALTURA_OJOS: 1.65,                 // m
+  ALTURA_MIN: 0.5,
+  ALTURA_MAX: L.altoRack + 6,
+  VELOCIDAD: 3.2,                    // m/s
+  VELOCIDAD_CORRER: 8,
+  VELOCIDAD_VERTICAL: 2.5,
+  RADIO: 0.45,                       // distancia mínima a racks, muros y otros obstáculos
+  SENSIBILIDAD: 0.0032,              // rad por píxel al arrastrar
+};
+const TECLAS_CAMINAR = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight']);
+
+let caminando = false;
+let guinada = 0, cabeceo = 0;        // giro horizontal (yaw) y vertical (pitch)
+let alturaVista = CAMINAR.ALTURA_OJOS;  // altura base de la vista (Q/E); el balanceo se suma encima
+let fasePaso = 0;                    // fase del balanceo al caminar
+let tweenCaminar = null;
+let arrastreMirada = null;
+const teclas = new Set();
+const velocidad = new THREE.Vector2();   // en planta (x, z)
+const _euler = new THREE.Euler(0, 0, 0, 'YXZ');
+const btnCaminar = document.getElementById('btn-caminar');
+const hudCaminar = document.getElementById('hud-caminar');
+
+// Obstáculos en planta con su altura: racks, muros (con las puertas libres), pallets y camiones.
+// Límites del recorrido: el edificio más el patio y un margen alrededor.
+const RACKS_PLANTA = PASILLOS.map((_, p) => ({
+  x0: -0.05, x1: L.largoRack + 0.05,
+  z0: L.zRack(p) - CONFIG.PROF_RACK / 2, z1: L.zRack(p) + CONFIG.PROF_RACK / 2, alto: L.altoRack, tipo: 'rack',
+}));
+const OBSTACULOS = [...RACKS_PLANTA, ...obstaculosExtra];
+const LIMITES = { x0: L.xMuro - 36, x1: L.xMax + 12, z0: L.zMin - 14, z1: L.zMax + 14 };
+
+function bloqueado(x, z, y) {
+  if (x < LIMITES.x0 || x > LIMITES.x1 || z < LIMITES.z0 || z > LIMITES.z1) return true;
+  const r = CAMINAR.RADIO;
+  // Un obstáculo bloquea solo si la vista está por debajo de su altura (por encima se puede pasar)
+  return OBSTACULOS.some(o => y < o.alto + 0.4 && x > o.x0 - r && x < o.x1 + r && z > o.z0 - r && z < o.z1 + r);
+}
+
+const limitar = (v, a, b) => Math.min(b, Math.max(a, v));
+function aplicarOrientacion() {
+  camara.quaternion.setFromEuler(_euler.set(cabeceo, guinada, 0));
+}
+function orientarHacia(dir) {               // guiñada/cabeceo a partir de una dirección
+  guinada = Math.atan2(-dir.x, -dir.z);
+  cabeceo = limitar(Math.asin(limitar(dir.y, -1, 1)), -1.45, 1.45);
+}
+function iniciarTween(destino, duracion = 1100) {
+  tweenCaminar = {
+    p0: camara.position.clone(), q0: camara.quaternion.clone(),
+    p1: destino.clone(), q1: new THREE.Quaternion().setFromEuler(_euler.set(cabeceo, guinada, 0)),
+    inicio: performance.now(), duracion,
+  };
+  pedirRender();
+}
+
+function entrarCaminata() {
+  if (caminando) return;
+  if (enPresentacion) salirPresentacion();
+  transicion = null;
+  vistaActual = null;
+  caminando = true;
+  controles.enabled = false;
+  controles.autoRotate = false;
+  velocidad.set(0, 0);
+  document.body.classList.add('caminando');
+  hudCaminar.hidden = false;
+  btnCaminar.textContent = '■ Salir de caminata (C)';
+  btnCaminar.classList.add('activo');
+  btnCaminar.blur();                       // que W A S D no queden en el botón
+
+  const actual = camara.position;
+  const dir = camara.getWorldDirection(new THREE.Vector3());
+  if (actual.y < 4 && !bloqueado(actual.x, actual.z, actual.y)) {
+    // Ya está a ras de piso (por ejemplo, tras "Entrar al pasillo"): se camina desde ahí
+    alturaVista = actual.y;
+    orientarHacia(dir);
+    aplicarOrientacion();
+  } else {
+    // Desde la vista aérea: baja caminando a la cabecera del pasillo elegido, mirando a lo largo
+    const p = Math.max(0, PASILLOS.indexOf(selPasillo.value));
+    const z = L.zRack(p) + CONFIG.PROF_RACK / 2 + CONFIG.ANCHO_PASILLO / 2;
+    guinada = -Math.PI / 2;                // mirando hacia +X (a lo largo del corredor)
+    cabeceo = -0.04;
+    iniciarTween(new THREE.Vector3(-1.2, CAMINAR.ALTURA_OJOS, z), 1300);
+  }
+  ajustarMinimapa();
+  actualizarHud();
+}
+
+function salirCaminata() {
+  if (!caminando) return;
+  caminando = false;
+  tweenCaminar = null;
+  arrastreMirada = null;
+  teclas.clear();
+  document.body.classList.remove('caminando');
+  hudCaminar.hidden = true;
+  btnCaminar.textContent = '🚶 Caminar por el pasillo (C)';
+  btnCaminar.classList.remove('activo');
+  // La cámara orbital sigue mirando hacia donde se miraba al caminar
+  const dir = camara.getWorldDirection(new THREE.Vector3());
+  controles.target.copy(camara.position).addScaledVector(dir, 6);
+  controles.enabled = true;
+  controles.update();
+  pedirRender();
+}
+function alternarCaminata() { caminando ? salirCaminata() : entrarCaminata(); }
+btnCaminar.addEventListener('click', alternarCaminata);
+
+/* Lleva la cámara a pie hasta el corredor frente a una posición, mirándola */
+function caminarHasta(pos) {
+  const c = centroNicho(pos);
+  const destino = new THREE.Vector3(
+    limitar(c.x - 2.0, LIMITES.x0, LIMITES.x1),
+    Math.max(CAMINAR.ALTURA_OJOS, c.y + 0.3),
+    L.zRack(pos.p) + CONFIG.PROF_RACK / 2 + CONFIG.ANCHO_PASILLO * 0.8,
+  );
+  orientarHacia(c.clone().sub(destino).normalize());
+  iniciarTween(destino);
+}
+
+/* Avanza un cuadro: transición, teclado y colisiones. Devuelve true si la cámara cambió. */
+function actualizarCaminata(dt, ahora) {
+  if (tweenCaminar) {
+    const t = Math.min(1, (ahora - tweenCaminar.inicio) / tweenCaminar.duracion);
+    const k = suavizar(t);
+    camara.position.lerpVectors(tweenCaminar.p0, tweenCaminar.p1, k);
+    camara.quaternion.slerpQuaternions(tweenCaminar.q0, tweenCaminar.q1, k);
+    if (t >= 1) { alturaVista = tweenCaminar.p1.y; tweenCaminar = null; aplicarOrientacion(); }
+    actualizarHud();
+    return true;
+  }
+  const eje = (a, b) => (teclas.has(a) || teclas.has(b) ? 1 : 0);
+  const adelante = eje('KeyW', 'ArrowUp') - eje('KeyS', 'ArrowDown');
+  const lado = eje('KeyD', 'ArrowRight') - eje('KeyA', 'ArrowLeft');
+  const vertical = eje('KeyE', 'KeyE') - eje('KeyQ', 'KeyQ');
+  const vmax = teclas.has('ShiftLeft') || teclas.has('ShiftRight') ? CAMINAR.VELOCIDAD_CORRER : CAMINAR.VELOCIDAD;
+
+  // Dirección deseada en planta, relativa a la mirada horizontal
+  const sen = Math.sin(guinada), cos = Math.cos(guinada);
+  let ix = -sen * adelante + cos * lado;
+  let iz = -cos * adelante - sen * lado;
+  const n = Math.hypot(ix, iz);
+  if (n > 0) { ix = (ix / n) * vmax; iz = (iz / n) * vmax; }
+  // Aceleración y frenado suaves
+  const suave = 1 - Math.exp(-12 * dt);
+  velocidad.x += (ix - velocidad.x) * suave;
+  velocidad.y += (iz - velocidad.y) * suave;
+  if (!n && velocidad.lengthSq() < 1e-4) velocidad.set(0, 0);
+
+  const pos = camara.position;
+  pos.y = alturaVista;                 // se quita el balanceo antes de evaluar colisiones
+  let cambio = false;
+  if (velocidad.x || velocidad.y) {
+    // Se resuelve cada eje por separado: así se desliza a lo largo de racks y muros
+    const nx = pos.x + velocidad.x * dt;
+    if (!bloqueado(nx, pos.z, pos.y)) pos.x = nx; else velocidad.x = 0;
+    const nz = pos.z + velocidad.y * dt;
+    if (!bloqueado(pos.x, nz, pos.y)) pos.z = nz; else velocidad.y = 0;
+    cambio = true;
+  }
+  if (vertical) {
+    const ny = limitar(alturaVista + vertical * CAMINAR.VELOCIDAD_VERTICAL * dt, CAMINAR.ALTURA_MIN, CAMINAR.ALTURA_MAX);
+    if (!bloqueado(pos.x, pos.z, ny)) alturaVista = ny;   // no se puede bajar dentro de un rack o un muro
+    cambio = true;
+  }
+  // Balanceo suave de la cabeza al caminar (solo a ras de piso), proporcional a la rapidez
+  const rapidez = velocidad.length();
+  if (rapidez > 0.05 && alturaVista < 2.5) fasePaso += dt * (5 + rapidez * 1.6);
+  else fasePaso = rapidez > 0.05 ? fasePaso : 0;
+  const balanceo = Math.sin(fasePaso) * 0.035 * Math.min(1, rapidez / CAMINAR.VELOCIDAD);
+  pos.y = alturaVista + balanceo;
+  if (balanceo) cambio = true;
+  if (cambio) actualizarHud();
+  return cambio;
+}
+
+/* ---- Mirar con el mouse (arrastrar) y avanzar con la rueda ---- */
+lienzo.addEventListener('pointerdown', ev => {
+  if (!caminando || ev.button !== 0) return;
+  arrastreMirada = { x: ev.clientX, y: ev.clientY };
+  lienzo.setPointerCapture(ev.pointerId);
+});
+lienzo.addEventListener('pointermove', ev => {
+  if (!caminando || !arrastreMirada || !(ev.buttons & 1)) return;
+  guinada -= (ev.clientX - arrastreMirada.x) * CAMINAR.SENSIBILIDAD;
+  cabeceo = limitar(cabeceo - (ev.clientY - arrastreMirada.y) * CAMINAR.SENSIBILIDAD, -1.45, 1.45);
+  arrastreMirada = { x: ev.clientX, y: ev.clientY };
+  tweenCaminar = null;
+  aplicarOrientacion();
+  actualizarHud();
+  pedirRender();
+});
+lienzo.addEventListener('pointerup', () => { arrastreMirada = null; });
+lienzo.addEventListener('wheel', ev => {
+  if (!caminando) return;
+  const paso = limitar(-ev.deltaY * 0.01, -2, 2);
+  const pos = camara.position;
+  const nx = pos.x - Math.sin(guinada) * paso, nz = pos.z - Math.cos(guinada) * paso;
+  if (!bloqueado(nx, nz, alturaVista)) { pos.x = nx; pos.z = nz; actualizarHud(); pedirRender(); }
+}, { passive: true });
+
+/* ---- Teclado ---- */
+window.addEventListener('keydown', ev => {
+  if (!caminando || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  if (ev.target instanceof Element && ev.target.matches('input, select, textarea')) return;
+  if (TECLAS_CAMINAR.has(ev.code)) { teclas.add(ev.code); ev.preventDefault(); pedirRender(); }
+});
+window.addEventListener('keyup', ev => teclas.delete(ev.code));
+window.addEventListener('blur', () => teclas.clear());
+
+/* ---- HUD: ubicación en texto y minimapa ---- */
+const minimapa = document.getElementById('minimapa');
+const ctxMapa = minimapa.getContext('2d');
+const MAPA = { w: 204, h: 214, margen: 6, escala: 1, x0: LIMITES.x0, z0: LIMITES.z0 };
+function ajustarMinimapa() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  minimapa.width = MAPA.w * dpr;
+  minimapa.height = MAPA.h * dpr;
+  ctxMapa.setTransform(dpr, 0, 0, dpr, 0, 0);
+  MAPA.escala = Math.min((MAPA.w - 2 * MAPA.margen) / (LIMITES.x1 - MAPA.x0), (MAPA.h - 2 * MAPA.margen) / (LIMITES.z1 - MAPA.z0));
+}
+const aMapa = (x, z) => [MAPA.margen + (x - MAPA.x0) * MAPA.escala, MAPA.margen + (z - MAPA.z0) * MAPA.escala];
+
+function dibujarMinimapa() {
+  const c = ctxMapa, e = MAPA.escala;
+  c.clearRect(0, 0, MAPA.w, MAPA.h);
+  // Patio asfaltado, losa del edificio y zona de stage
+  const [ax, az] = aMapa(L.xMuro - 28, L.zMin - 11);
+  c.fillStyle = '#1a1d22';
+  c.fillRect(ax, az, 28 * e, (L.zMax - L.zMin + 22) * e);
+  const [bx, bz] = aMapa(L.xMuro, L.zMin - 1);
+  c.fillStyle = '#161b22';
+  c.fillRect(bx, bz, (L.xMax - L.xMuro) * e, (L.zMax - L.zMin + 2) * e);
+  const [sx, sz] = aMapa(L.xStageIni, L.zMin + 0.5);
+  c.fillStyle = '#1d2632';
+  c.fillRect(sx, sz, (L.xStageFin - L.xStageIni) * e, (L.zMax - L.zMin - 1) * e);
+  // Muros (con las puertas abiertas), pallets del stage y camiones
+  for (const o of obstaculosExtra) {
+    const [x, z] = aMapa(o.x0, o.z0);
+    c.fillStyle = o.tipo === 'muro' ? '#7b8796' : o.tipo === 'camion' ? '#3f5f86' : '#6e5d48';
+    c.fillRect(x, z, Math.max(1.5, (o.x1 - o.x0) * e), Math.max(1.5, (o.z1 - o.z0) * e));
+  }
+  // Racks con su letra
+  c.font = '700 8px system-ui, sans-serif'; c.textAlign = 'right'; c.textBaseline = 'middle';
+  RACKS_PLANTA.forEach((o, p) => {
+    const [x, z] = aMapa(o.x0, o.z0);
+    c.fillStyle = '#4b5a6c';
+    c.fillRect(x, z, (o.x1 - o.x0) * e, Math.max(2, (o.z1 - o.z0) * e));
+    c.fillStyle = '#a3afbd';
+    c.fillText(PASILLOS[p], x - 2, z + ((o.z1 - o.z0) * e) / 2);
+  });
+  // Posición seleccionada (búsqueda, alerta o clic)
+  if (indiceSeleccion >= 0) {
+    const ps = posiciones[indiceSeleccion];
+    const [x, z] = aMapa(L.xColumna(ps.columna), L.zRack(ps.p));
+    c.fillStyle = '#ffffff'; c.beginPath(); c.arc(x, z, 3, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = '#ffffff'; c.beginPath(); c.arc(x, z, 6, 0, Math.PI * 2); c.stroke();
+  }
+  // Persona y cono de visión
+  const [px, pz] = aMapa(camara.position.x, camara.position.z);
+  const dir = camara.getWorldDirection(_v);
+  const ang = Math.atan2(dir.z, dir.x);
+  c.fillStyle = 'rgba(196, 166, 255, .25)';
+  c.beginPath(); c.moveTo(px, pz); c.arc(px, pz, 24, ang - 0.45, ang + 0.45); c.closePath(); c.fill();
+  c.fillStyle = '#c4a6ff';
+  c.beginPath(); c.arc(px, pz, 4, 0, Math.PI * 2); c.fill();
+}
+
+function textoUbicacion() {
+  const { x, y, z } = camara.position;
+  let lugar;
+  const dentro = x > L.xMuro && x < L.xMax && z > L.zMin - 1 && z < L.zMax + 1;
+  if (!dentro) lugar = x < L.xMuro ? 'Patio de camiones (exterior)' : 'Exterior de la bodega';
+  else if (x < L.xStageIni) lugar = 'Andenes de recepción y despacho';
+  else if (x < L.xStageFin) lugar = 'Zona de stage';
+  else {
+    const k = Math.floor((z - CONFIG.PROF_RACK / 2) / L.paso);    // último rack cuyo frente quedó atrás
+    const sobre = PASILLOS.findIndex((_, p) => Math.abs(z - L.zRack(p)) <= CONFIG.PROF_RACK / 2);
+    const a = PASILLOS[k], b = PASILLOS[k + 1];
+    lugar = sobre >= 0 ? `Sobre el pasillo ${PASILLOS[sobre]}`
+      : a && b ? `Entre pasillos ${a} y ${b}`
+      : `Junto al pasillo ${a || b}`;
+    if (x < 0) lugar += ' · cabecera';
+    else if (x > L.largoRack) lugar += ' · fondo';
+    else lugar += ` · columna ${limitar(Math.floor(x / CONFIG.ANCHO_NICHO) + 1, 1, CONFIG.NUM_COLUMNAS)}`;
+  }
+  const nivel = limitar(Math.floor((y - CONFIG.ALTURA_PRIMER_NIVEL) / CONFIG.ALTO_NICHO) + 1, 1, CONFIG.NUM_NIVELES);
+  const altura = y > L.altoRack ? 'sobre los racks' : `altura del nivel ${nivel}`;
+  return `${lugar}<small>Vista a ${fmt(y, 1)} m · ${altura}</small>`;
+}
+
+function actualizarHud() {
+  if (!caminando) return;
+  document.getElementById('hud-ubicacion').innerHTML = textoUbicacion();
+  dibujarMinimapa();
+}
+
+// Clic en el minimapa: ir a ese punto (si no hay un rack ahí)
+minimapa.addEventListener('click', ev => {
+  const r = minimapa.getBoundingClientRect();
+  const x = MAPA.x0 + (ev.clientX - r.left - MAPA.margen) / MAPA.escala;
+  const z = MAPA.z0 + (ev.clientY - r.top - MAPA.margen) / MAPA.escala;
+  if (bloqueado(x, z, alturaVista)) {
+    mostrarMensaje('aviso', 'Ahí hay un obstáculo.', ['Haz clic en un corredor, el stage o el patio del minimapa.'], 2500);
+    return;
+  }
+  iniciarTween(new THREE.Vector3(x, alturaVista, z), 700);
+});
 
 /* =====================================================================
    12. BUSCADOR
@@ -1934,17 +3104,24 @@ function buscar(texto) {
   resultadosActuales = [];
   if (q.length < 2) { infoBuscar.hidden = true; return; }
 
+  // Código de ubicación: "b-2-2", "B-02-2", "b 2 2" o "b22" → esa posición primero (aunque esté vacía)
+  const m = q.match(/^([a-z])[\s-]*(\d{1,2})[\s-]+(\d{1,2})$/) || q.match(/^([a-z])(\d{2})(\d)$/);
+  const porCodigo = m ? posiciones.find(p => p.pasillo === m[1].toUpperCase() && p.columna === Number(m[2]) && p.nivel === Number(m[3])) : null;
+
   const terminos = q.split(/\s+/);
   let coincidencias = indiceBusqueda.filter(it => terminos.every(t => it.texto.includes(t)));
+  if (porCodigo) {
+    coincidencias = [{ idx: porCodigo.idx }, ...coincidencias.filter(it => it.idx !== porCodigo.idx)];
+  }
   // Sin resultados exactos: se toleran errores de tipeo ("barbiquejoo" → "barbiquejo")
-  const aproximada = !coincidencias.length;
+  const aproximada = !coincidencias.length && !porCodigo;
   if (aproximada) coincidencias = indiceBusqueda.filter(it => terminos.every(t => terminoAproximado(t, it)));
   resultadosActuales = coincidencias.slice(0, MAX_RESULTADOS).map(it => it.idx);
 
   infoBuscar.hidden = false;
   infoBuscar.textContent = coincidencias.length
     ? `${aproximada ? 'Sin coincidencia exacta; resultados aproximados: ' : ''}${fmt(coincidencias.length)} ${coincidencias.length === 1 ? 'ubicación' : 'ubicaciones'}${coincidencias.length > MAX_RESULTADOS ? ` · se muestran ${MAX_RESULTADOS}` : ''}. Enter abre la primera.`
-    : 'Sin coincidencias en SKU ni descripción.';
+    : 'Sin coincidencias en SKU, descripción ni código de ubicación (ej. B-02-2).';
 
   for (const idx of resultadosActuales) {
     const pos = posiciones[idx];
@@ -1952,7 +3129,7 @@ function buscar(texto) {
     const li = document.createElement('li');
     li.innerHTML = `<button type="button">
         <span class="punto" style="background:${e.color}" title="${e.nombre}"></span>
-        <span style="min-width:0"><span class="sku">${esc(pos.sku.sku)}</span><span class="desc">${esc(pos.sku.descripcion)}</span></span>
+        <span style="min-width:0"><span class="sku">${pos.sku ? esc(pos.sku.sku) : 'Posición vacía'}</span><span class="desc">${pos.sku ? esc(pos.sku.descripcion) : 'Sin repuesto asignado'}</span></span>
         <span class="ubic">${pos.codigo}</span>
       </button>`;
     li.querySelector('button').addEventListener('click', () => ubicar(idx));
@@ -1967,7 +3144,9 @@ function ubicar(idx) {
     limpiarFiltros();
     mostrarMensaje('aviso', 'Se limpiaron los filtros', ['La posición estaba oculta por los filtros activos.'], 3500);
   }
-  seleccionar(idx, { volar: true, baliza: true });
+  // Caminando, se llega a pie hasta el frente de la posición; si no, vuela la cámara orbital
+  if (caminando) { caminarHasta(posiciones[idx]); seleccionar(idx, { baliza: true }); }
+  else seleccionar(idx, { volar: true, baliza: true });
   listaResultados.querySelectorAll('button').forEach((b, i) => b.classList.toggle('activo', resultadosActuales[i] === idx));
 }
 
@@ -2083,8 +3262,15 @@ window.addEventListener('keydown', ev => {
   else if (k === 'p') vistaPlanta();
   else if (k === 'f') alternarPantallaCompleta();
   else if (k === 'm') alternarLateral();
+  else if (k === 'c') alternarCaminata();
+  else if (k === 'v') {
+    const ops = [...selColor.options].map(o => o.value);
+    cambiarModoColor(ops[(ops.indexOf(modoColor) + 1) % ops.length]);
+  }
   else if (k === 'escape') {
     if (enPresentacion) salirPresentacion();
+    // Esc primero cierra la ficha; con la ficha cerrada, sale del modo caminar
+    if (caminando && document.getElementById('detalle').hidden) salirCaminata();
     cerrarDetalle();
     cajaMensaje.hidden = true;
   }
@@ -2157,6 +3343,10 @@ function redimensionar() {
   camara.updateProjectionMatrix();
   visor.style.setProperty('--alto-barra', `${barraEstados.offsetHeight}px`);
   if (vistaActual && !transicion) aplicarVista(vistaActual, false);
+  // setSize borra el lienzo: se dibuja de inmediato para no mostrar un cuadro vacío (parpadeo)
+  actualizarEntorno();
+  renderer.render(escena, camara);
+  capaEtiquetas.render(escena, camara);
   pedirRender();
 }
 const observador = new ResizeObserver(redimensionar);
@@ -2177,7 +3367,11 @@ function cuadro(ahora) {
     if (t >= 1) transicion = null;
     renderPendiente = true;
   }
-  controles.update(dt);     // dt hace que la rotación automática no dependa de los FPS
+  if (caminando) {
+    if (actualizarCaminata(dt, ahora)) renderPendiente = true;
+  } else {
+    controles.update(dt);     // dt hace que la rotación automática no dependa de los FPS
+  }
 
   if (eventoHoverPendiente) { procesarHover(eventoHoverPendiente); eventoHoverPendiente = null; }
 
@@ -2188,6 +3382,7 @@ function cuadro(ahora) {
 
   if (renderPendiente) {
     renderPendiente = false;
+    actualizarEntorno();
     renderer.render(escena, camara);
     capaEtiquetas.render(escena, camara);
     despejarEtiquetas();
@@ -2203,6 +3398,15 @@ try {
   mostrarMensaje('error', 'No se pudieron leer los datos de ejemplo embebidos.', [err.message, 'Ejecuta generar_datos.py para regenerarlos.']);
 }
 redimensionar();          // tamaño del lienzo + encuadre general inicial
+// Precompila los shaders de todo lo que aparece solo en ciertas vistas (interior del edificio,
+// etiquetas de viga, halos) y sube sus texturas: evita tirones la primera vez que se acerca la cámara
+{
+  const ocultos = [interiorEdificio, etiquetasViga, halos, contornoHover, contornoSel, baliza].filter(o => !o.visible);
+  ocultos.forEach(o => { o.visible = true; });
+  renderer.compile(escena, camara);
+  renderer.initTexture(etiquetasViga.material.map);   // atlas grande: se sube a la GPU al cargar, no al acercarse
+  ocultos.forEach(o => { o.visible = false; });
+}
 window.__bodegaLista = true;
 requestAnimationFrame(cuadro);
 </script>
